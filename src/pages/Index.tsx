@@ -1,12 +1,31 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useWorkEntries } from "@/hooks/useWorkEntries";
+import WorkEntryForm from "@/components/WorkEntryForm";
+import WorkEntryList from "@/components/WorkEntryList";
+import WorkStats from "@/components/WorkStats";
+import { Briefcase } from "lucide-react";
 
 const Index = () => {
+  const { entries, addEntry, deleteEntry } = useWorkEntries();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card/60 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <Briefcase className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="font-display font-bold text-xl leading-tight">Arbeitszeit</h1>
+            <p className="text-xs text-muted-foreground">Deine Stunden im Überblick</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {entries.length > 0 && <WorkStats entries={entries} />}
+        <WorkEntryForm onAdd={addEntry} />
+        <WorkEntryList entries={entries} onDelete={deleteEntry} />
+      </main>
     </div>
   );
 };
