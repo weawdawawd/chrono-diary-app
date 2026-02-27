@@ -2,7 +2,9 @@ import { useWorkEntries } from "@/hooks/useWorkEntries";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
-import { Briefcase } from "lucide-react";
+import { exportToPDF } from "@/lib/exportPDF";
+import { Button } from "@/components/ui/button";
+import { Briefcase, Download } from "lucide-react";
 
 const Index = () => {
   const { entries, addEntry, deleteEntry } = useWorkEntries();
@@ -18,6 +20,17 @@ const Index = () => {
             <h1 className="font-display font-bold text-xl leading-tight">Arbeitszeit</h1>
             <p className="text-xs text-muted-foreground">Deine Stunden im Überblick</p>
           </div>
+          {entries.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => exportToPDF(entries)}
+            >
+              <Download className="w-4 h-4 mr-1.5" />
+              PDF
+            </Button>
+          )}
         </div>
       </header>
 
