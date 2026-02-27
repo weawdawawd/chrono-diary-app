@@ -8,13 +8,25 @@ export function exportToPDF(entries: WorkEntry[]) {
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
+  // Determine month range from entries
+  const dates = sorted.map((e) => parseISO(e.date));
+  const firstDate = dates[0];
+  const lastDate = dates[dates.length - 1];
+  const isSameMonth =
+    firstDate.getMonth() === lastDate.getMonth() &&
+    firstDate.getFullYear() === lastDate.getFullYear();
+
+  const subtitle = isSameMonth
+    ? format(firstDate, "MMMM yyyy", { locale: de })
+    : `${format(firstDate, "MMMM yyyy", { locale: de })} – ${format(lastDate, "MMMM yyyy", { locale: de })}`;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("Arbeitszeitnachweis", 14, 20);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(`Erstellt am ${format(new Date(), "d. MMMM yyyy", { locale: de })}`, 14, 28);
+  doc.text(subtitle, 14, 28);
 
   autoTable(doc, {
     startY: 35,
