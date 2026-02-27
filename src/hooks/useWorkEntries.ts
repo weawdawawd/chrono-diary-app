@@ -1,36 +1,70 @@
-import { useState } from "react";
-import { WorkEntry } from "@/lib/types";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-const STORAGE_KEY = "work-entries";
+type WorkEntry = Tables<"work_entries">;
 
-function loadEntries(): WorkEntry[] {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
+export function useWorkEntries(userId: string | undefined) {
+  const [entries, setEntries] = useState<WorkEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-function saveEntries(entries: WorkEntry[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
+  const fetchEntries = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("work_entries")
+      .select("*")
+      .order("date", { ascending: false })
+      .order("start_time", { ascending: false });
+    setEntries(data || []);
+    setLoading(false);
+  }, [userId]);
 
-export function useWorkEntries() {
-  const [entries, setEntries] = useState<WorkEntry[]>(loadEntries);
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
 
-  const addEntry = (entry: Omit<WorkEntry, "id">) => {
-    const newEntry: WorkEntry = { ...entry, id: crypto.randomUUID() };
-    const updated = [newEntry, ...entries];
-    setEntries(updated);
-    saveEntries(updated);
+  const addEntry = async (entry: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    description: string;
+  }) => {
+    if (!userId) return;
+    const { error } = await supabase.from("work_entries").insert({
+      user_id: userId,
+      date: entry.date,
+      start_time: entry.startTime,
+      end_time: entry.endTime,
+      location: entry.location,
+      description: entry.description,
+    });
+    if (error) throw error;
+
+    // Upsert saved location
+    const { data: existing } = await supabase
+      .from("saved_locations")
+      .select("id, usage_count")
+      .eq("user_id", userId)
+      .eq("name", entry.location)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("saved_locations")
+        .update({ usage_count: existing.usage_count + 1, last_used_at: new Date().toISOString() })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("saved_locations").insert({ user_id: userId, name: entry.location });
+    }
+
+    await fetchEntries();
   };
 
-  const deleteEntry = (id: string) => {
-    const updated = entries.filter((e) => e.id !== id);
-    setEntries(updated);
-    saveEntries(updated);
+  const deleteEntry = async (id: string) => {
+    await supabase.from("work_entries").delete().eq("id", id);
+    await fetchEntries();
   };
 
-  return { entries, addEntry, deleteEntry };
+  return { entries, loading, addEntry, deleteEntry };
 }

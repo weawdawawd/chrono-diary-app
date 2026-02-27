@@ -21,7 +21,6 @@ export default function WorkEntryList({ entries, onDelete }: Props) {
     );
   }
 
-  // Group by date
   const grouped = entries.reduce<Record<string, WorkEntry[]>>((acc, entry) => {
     if (!acc[entry.date]) acc[entry.date] = [];
     acc[entry.date].push(entry);
@@ -53,9 +52,9 @@ export default function WorkEntryList({ entries, onDelete }: Props) {
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                         <span className="flex items-center gap-1.5 font-medium">
                           <Clock className="w-3.5 h-3.5 text-primary" />
-                          {entry.startTime} – {entry.endTime}
+                          {entry.start_time.slice(0, 5)} – {entry.end_time.slice(0, 5)}
                           <span className="text-muted-foreground font-normal">
-                            ({calculateDuration(entry.startTime, entry.endTime)})
+                            ({calculateDuration(entry.start_time, entry.end_time)})
                           </span>
                         </span>
                         <span className="flex items-center gap-1.5 text-muted-foreground">
