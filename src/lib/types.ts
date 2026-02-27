@@ -1,11 +1,6 @@
-export interface WorkEntry {
-  id: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  description: string;
-}
+import { Tables } from "@/integrations/supabase/types";
+
+export type WorkEntry = Tables<"work_entries">;
 
 export function calculateDuration(start: string, end: string): string {
   const [sh, sm] = start.split(":").map(Number);

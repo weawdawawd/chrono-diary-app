@@ -8,7 +8,6 @@ export function exportToPDF(entries: WorkEntry[]) {
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
-  // Determine month range from entries
   const dates = sorted.map((e) => parseISO(e.date));
   const firstDate = dates[0];
   const lastDate = dates[dates.length - 1];
@@ -33,9 +32,9 @@ export function exportToPDF(entries: WorkEntry[]) {
     head: [["Datum", "Von", "Bis", "Dauer", "Ort", "Taetigkeit"]],
     body: sorted.map((e) => [
       format(parseISO(e.date), "dd.MM.yyyy"),
-      e.startTime,
-      e.endTime,
-      calculateDuration(e.startTime, e.endTime),
+      e.start_time.slice(0, 5),
+      e.end_time.slice(0, 5),
+      calculateDuration(e.start_time, e.end_time),
       e.location,
       e.description,
     ]),

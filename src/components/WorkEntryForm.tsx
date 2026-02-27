@@ -1,24 +1,46 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
-import { WorkEntry } from "@/lib/types";
+import { Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
-  onAdd: (entry: Omit<WorkEntry, "id">) => void;
+  onAdd: (entry: {
+    date: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    description: string;
+  }) => void;
+  savedLocations: string[];
 }
 
-export default function WorkEntryForm({ onAdd }: Props) {
+export default function WorkEntryForm({ onAdd, savedLocations }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  const filteredLocations = savedLocations.filter((l) =>
+    l.toLowerCase().includes(location.toLowerCase()) && l.toLowerCase() !== location.toLowerCase()
+  );
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,15 +86,37 @@ export default function WorkEntryForm({ onAdd }: Props) {
               <Input id="end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 relative" ref={locationRef}>
             <Label htmlFor="location">Ort</Label>
             <Input
               id="location"
               placeholder="z.B. Büro Berlin, Baustelle München..."
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
               maxLength={200}
             />
+            {showSuggestions && filteredLocations.length > 0 && (
+              <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-card border rounded-lg shadow-lg overflow-hidden">
+                {filteredLocations.map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2 transition-colors"
+                    onClick={() => {
+                      setLocation(loc);
+                      setShowSuggestions(false);
+                    }}
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-accent shrink-0" />
+                    {loc}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="desc">Tätigkeit</Label>
