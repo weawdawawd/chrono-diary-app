@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X } from "lucide-react";
+import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,9 +13,10 @@ interface Props {
   entries: WorkEntry[];
   onDelete: (id: string) => void;
   onEdit?: (id: string, updates: { date: string; start_time: string; end_time: string; location: string; description: string }) => void;
+  onDuplicate?: (entry: { date: string; startTime: string; endTime: string; location: string; description: string }) => void;
 }
 
-export default function WorkEntryList({ entries, onDelete, onEdit }: Props) {
+export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ date: "", start_time: "", end_time: "", location: "", description: "" });
 
@@ -139,6 +140,23 @@ export default function WorkEntryList({ entries, onDelete, onEdit }: Props) {
                               </p>
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                              {onDuplicate && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                  onClick={() => onDuplicate({
+                                    date: new Date().toISOString().split("T")[0],
+                                    startTime: entry.start_time.slice(0, 5),
+                                    endTime: entry.end_time.slice(0, 5),
+                                    location: entry.location,
+                                    description: entry.description,
+                                  })}
+                                  aria-label="Duplizieren"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
                               {onEdit && (
                                 <Button
                                   variant="ghost"

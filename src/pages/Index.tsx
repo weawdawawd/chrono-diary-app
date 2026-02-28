@@ -5,6 +5,7 @@ import { useSavedLocations } from "@/hooks/useSavedLocations";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
+import WeeklyChart from "@/components/WeeklyChart";
 import MonthFilter from "@/components/MonthFilter";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import { exportToPDF } from "@/lib/exportPDF";
@@ -76,6 +77,8 @@ const Index = () => {
           {entries.length > 0 && <WorkStats entries={filteredEntries} />}
         </motion.div>
 
+        {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
+
         {entries.length > 0 && (
           <MonthFilter
             month={filterMonth || new Date()}
@@ -97,7 +100,7 @@ const Index = () => {
         {entriesLoading ? (
           <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
         ) : (
-          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} />
+          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} />
         )}
       </main>
     </div>
