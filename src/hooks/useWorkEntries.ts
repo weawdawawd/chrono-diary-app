@@ -66,5 +66,11 @@ export function useWorkEntries(userId: string | undefined) {
     await fetchEntries();
   };
 
-  return { entries, loading, addEntry, deleteEntry };
+  const editEntry = async (id: string, updates: { date: string; start_time: string; end_time: string; location: string; description: string }) => {
+    const { error } = await supabase.from("work_entries").update(updates).eq("id", id);
+    if (error) throw error;
+    await fetchEntries();
+  };
+
+  return { entries, loading, addEntry, deleteEntry, editEntry };
 }

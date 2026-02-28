@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, LogIn, UserPlus } from "lucide-react";
+import { Briefcase, LogIn, UserPlus, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -42,71 +42,124 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto">
-            <Briefcase className="w-7 h-7 text-primary-foreground" />
-          </div>
-          <CardTitle className="font-display text-2xl">
-            {isLogin ? "Anmelden" : "Konto erstellen"}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {isLogin
-              ? "Melde dich an, um deine Arbeitszeiten zu verwalten"
-              : "Erstelle ein Konto, um loszulegen"}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">E-Mail</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="deine@email.de"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Hero section */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center space-y-4"
+          >
+            <div className="relative inline-flex">
+              <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center shadow-lg">
+                <Briefcase className="w-10 h-10 text-primary-foreground" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-accent flex items-center justify-center shadow-md">
+                <Clock className="w-4 h-4 text-accent-foreground" />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Passwort</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={isLogin ? "current-password" : "new-password"}
-              />
+            <div>
+              <h1 className="font-display font-bold text-3xl text-foreground">Arbeitszeit</h1>
+              <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
+                Erfasse deine Arbeitszeiten einfach und schnell – überall und jederzeit.
+              </p>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                "Laden..."
-              ) : isLogin ? (
-                <>
-                  <LogIn className="w-4 h-4 mr-1.5" /> Anmelden
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4 mr-1.5" /> Registrieren
-                </>
-              )}
-            </Button>
-          </form>
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            {isLogin ? "Noch kein Konto?" : "Bereits registriert?"}{" "}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="bg-card border rounded-2xl shadow-lg p-6 space-y-5"
+          >
+            <div className="text-center">
+              <h2 className="font-display font-semibold text-xl">
+                {isLogin ? "Willkommen zurück" : "Konto erstellen"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isLogin
+                  ? "Melde dich an, um fortzufahren"
+                  : "Registriere dich kostenlos"}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium">E-Mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="deine@email.de"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-medium">Passwort</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  className="h-11"
+                />
+              </div>
+              <Button type="submit" className="w-full h-11 text-sm font-semibold" disabled={loading}>
+                {loading ? (
+                  <span className="animate-pulse">Laden...</span>
+                ) : isLogin ? (
+                  <>
+                    Anmelden <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Registrieren <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-3 text-muted-foreground">oder</span>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-accent font-medium hover:underline"
+              className="w-full text-center text-sm text-accent font-medium hover:underline underline-offset-4 transition-colors"
             >
-              {isLogin ? "Registrieren" : "Anmelden"}
+              {isLogin ? "Neues Konto erstellen" : "Ich habe bereits ein Konto"}
             </button>
-          </p>
-        </CardContent>
-      </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex justify-center gap-6 text-xs text-muted-foreground"
+          >
+            <span className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-success" />
+              Sicher & verschlüsselt
+            </span>
+            <span className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+              PDF Export
+            </span>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
