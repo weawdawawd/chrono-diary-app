@@ -3,29 +3,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Briefcase, LogIn, UserPlus, Clock, ArrowRight } from "lucide-react";
+import { Briefcase, LogIn, UserPlus, Clock, ArrowRight, KeyRound, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+type Mode = "login" | "register" | "forgot";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      toast.error("Bitte E-Mail und Passwort eingeben");
+    if (!email.trim()) {
+      toast.error("Bitte E-Mail eingeben");
+      return;
+    }
+    if (mode !== "forgot" && !password.trim()) {
+      toast.error("Bitte Passwort eingeben");
       return;
     }
     setLoading(true);
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Willkommen zurück!");
-      } else {
+      } else if (mode === "register") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -33,6 +39,13 @@ export default function AuthPage() {
         });
         if (error) throw error;
         toast.success("Konto erstellt! Bitte bestätige deine E-Mail.");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("E-Mail zum Zurücksetzen gesendet! Prüfe deinen Posteingang.");
+        setMode("login");
       }
     } catch (err: any) {
       toast.error(err.message || "Ein Fehler ist aufgetreten");
@@ -41,9 +54,14 @@ export default function AuthPage() {
     }
   };
 
+  const titles = {
+    login: { h: "Willkommen zurück", sub: "Melde dich an, um fortzufahren" },
+    register: { h: "Konto erstellen", sub: "Registriere dich kostenlos" },
+    forgot: { h: "Passwort vergessen", sub: "Wir senden dir einen Link zum Zurücksetzen" },
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Hero section */}
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md space-y-8">
           <motion.div
@@ -68,80 +86,103 @@ export default function AuthPage() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="bg-card border rounded-2xl shadow-lg p-6 space-y-5"
-          >
-            <div className="text-center">
-              <h2 className="font-display font-semibold text-xl">
-                {isLogin ? "Willkommen zurück" : "Konto erstellen"}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-1">
-                {isLogin
-                  ? "Melde dich an, um fortzufahren"
-                  : "Registriere dich kostenlos"}
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium">E-Mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="deine@email.de"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-medium">Passwort</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={isLogin ? "current-password" : "new-password"}
-                  className="h-11"
-                />
-              </div>
-              <Button type="submit" className="w-full h-11 text-sm font-semibold" disabled={loading}>
-                {loading ? (
-                  <span className="animate-pulse">Laden...</span>
-                ) : isLogin ? (
-                  <>
-                    Anmelden <ArrowRight className="w-4 h-4 ml-1" />
-                  </>
-                ) : (
-                  <>
-                    Registrieren <ArrowRight className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-3 text-muted-foreground">oder</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-sm text-accent font-medium hover:underline underline-offset-4 transition-colors"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="bg-card border rounded-2xl shadow-lg p-6 space-y-5"
             >
-              {isLogin ? "Neues Konto erstellen" : "Ich habe bereits ein Konto"}
-            </button>
-          </motion.div>
+              <div className="text-center">
+                <h2 className="font-display font-semibold text-xl">{titles[mode].h}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{titles[mode].sub}</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs font-medium">E-Mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="deine@email.de"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    className="h-11"
+                  />
+                </div>
+                {mode !== "forgot" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="password" className="text-xs font-medium">Passwort</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete={mode === "login" ? "current-password" : "new-password"}
+                      className="h-11"
+                    />
+                  </div>
+                )}
+
+                {mode === "login" && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setMode("forgot")}
+                      className="text-xs text-muted-foreground hover:text-accent transition-colors"
+                    >
+                      Passwort vergessen?
+                    </button>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full h-11 text-sm font-semibold" disabled={loading}>
+                  {loading ? (
+                    <span className="animate-pulse">Laden...</span>
+                  ) : mode === "login" ? (
+                    <>Anmelden <ArrowRight className="w-4 h-4 ml-1" /></>
+                  ) : mode === "register" ? (
+                    <>Registrieren <ArrowRight className="w-4 h-4 ml-1" /></>
+                  ) : (
+                    <>
+                      <KeyRound className="w-4 h-4 mr-1" /> Link senden
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-card px-3 text-muted-foreground">oder</span>
+                </div>
+              </div>
+
+              {mode === "forgot" ? (
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="w-full text-center text-sm text-accent font-medium hover:underline underline-offset-4 transition-colors flex items-center justify-center gap-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Zurück zur Anmeldung
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMode(mode === "login" ? "register" : "login")}
+                  className="w-full text-center text-sm text-accent font-medium hover:underline underline-offset-4 transition-colors"
+                >
+                  {mode === "login" ? "Neues Konto erstellen" : "Ich habe bereits ein Konto"}
+                </button>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           <motion.div
             initial={{ opacity: 0 }}
