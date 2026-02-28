@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { WorkEntry, calculateDuration } from "@/lib/types";
+import { WorkEntry, calculateDuration, calculateDurationMinutes } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -19,6 +19,15 @@ export function exportToPDF(entries: WorkEntry[]) {
     ? format(firstDate, "MMMM yyyy", { locale: de })
     : `${format(firstDate, "MMMM yyyy", { locale: de })} – ${format(lastDate, "MMMM yyyy", { locale: de })}`;
 
+  // Total hours calculation
+  const totalMinutes = sorted.reduce(
+    (sum, e) => sum + calculateDurationMinutes(e.start_time, e.end_time),
+    0
+  );
+  const totalH = Math.floor(totalMinutes / 60);
+  const totalM = totalMinutes % 60;
+  const totalStr = `${totalH}h ${totalM.toString().padStart(2, "0")}m`;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("Arbeitszeitnachweis", 14, 20);
@@ -27,8 +36,12 @@ export function exportToPDF(entries: WorkEntry[]) {
   doc.setFontSize(10);
   doc.text(subtitle, 14, 28);
 
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text(`Gesamtstunden: ${totalStr}  |  ${sorted.length} Eintraege  |  ${new Set(sorted.map(e => e.location)).size} Orte`, 14, 34);
+
   autoTable(doc, {
-    startY: 35,
+    startY: 40,
     head: [["Datum", "Von", "Bis", "Dauer", "Ort", "Taetigkeit"]],
     body: sorted.map((e) => [
       format(parseISO(e.date), "dd.MM.yyyy"),
@@ -38,8 +51,10 @@ export function exportToPDF(entries: WorkEntry[]) {
       e.location,
       e.description,
     ]),
+    foot: [["", "", "Gesamt:", totalStr, "", ""]],
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [30, 48, 80] },
+    footStyles: { fillColor: [240, 240, 240], textColor: [30, 48, 80], fontStyle: "bold" },
     columnStyles: {
       0: { cellWidth: 24 },
       1: { cellWidth: 16 },
