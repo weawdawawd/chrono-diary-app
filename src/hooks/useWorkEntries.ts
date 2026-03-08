@@ -8,8 +8,21 @@ export function useWorkEntries(userId: string | undefined) {
   const [entries, setEntries] = useState<WorkEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const archivePastMonthEntries = useCallback(async () => {
+    if (!userId) return;
+    const now = new Date();
+    const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    await supabase
+      .from("work_entries")
+      .update({ archived: true })
+      .eq("user_id", userId)
+      .eq("archived", false)
+      .lt("date", firstOfMonth);
+  }, [userId]);
+
   const fetchEntries = useCallback(async () => {
     if (!userId) return;
+    await archivePastMonthEntries();
     const { data } = await supabase
       .from("work_entries")
       .select("*")
@@ -17,7 +30,7 @@ export function useWorkEntries(userId: string | undefined) {
       .order("start_time", { ascending: false });
     setEntries(data || []);
     setLoading(false);
-  }, [userId]);
+  }, [userId, archivePastMonthEntries]);
 
   useEffect(() => {
     fetchEntries();
