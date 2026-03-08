@@ -96,6 +96,7 @@ const Index = () => {
         </motion.div>
 
         {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
+        {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
 
         {entries.length > 0 && (
           <MonthFilter
