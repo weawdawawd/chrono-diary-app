@@ -6,11 +6,15 @@ import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
 import WeeklyChart from "@/components/WeeklyChart";
+import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import MonthFilter from "@/components/MonthFilter";
+import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import { exportToPDF } from "@/lib/exportPDF";
+import { exportToCSV } from "@/lib/exportCSV";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Download, LogOut } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Briefcase, Download, LogOut, FileText, FileSpreadsheet } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 
