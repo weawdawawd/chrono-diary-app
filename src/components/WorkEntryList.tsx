@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy } from "lucide-react";
+import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy, Lock } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   entries: WorkEntry[];
@@ -102,9 +103,9 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate }
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                   >
-                    <Card className="group bg-card hover:shadow-md transition-all border-l-4 border-l-primary/20 hover:border-l-primary/60">
-                      <CardContent className="p-4">
-                        {editingId === entry.id ? (
+                    <Card className={`group bg-card hover:shadow-md transition-all border-l-4 ${entry.archived ? "border-l-muted-foreground/30 opacity-75" : "border-l-primary/20 hover:border-l-primary/60"}`}>
+                       <CardContent className="p-4">
+                         {editingId === entry.id && !entry.archived ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-2">
                               <Input type="date" value={editData.date} onChange={(e) => setEditData(d => ({ ...d, date: e.target.value }))} className="text-xs h-9" />
@@ -139,44 +140,53 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate }
                                 {entry.description}
                               </p>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                              {onDuplicate && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                  onClick={() => onDuplicate({
-                                    date: new Date().toISOString().split("T")[0],
-                                    startTime: entry.start_time.slice(0, 5),
-                                    endTime: entry.end_time.slice(0, 5),
-                                    location: entry.location,
-                                    description: entry.description,
-                                  })}
-                                  aria-label="Duplizieren"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </Button>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {entry.archived ? (
+                                <Badge variant="secondary" className="text-[10px] gap-1 px-2 py-0.5">
+                                  <Lock className="w-3 h-3" />
+                                  Archiviert
+                                </Badge>
+                              ) : (
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {onDuplicate && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                      onClick={() => onDuplicate({
+                                        date: new Date().toISOString().split("T")[0],
+                                        startTime: entry.start_time.slice(0, 5),
+                                        endTime: entry.end_time.slice(0, 5),
+                                        location: entry.location,
+                                        description: entry.description,
+                                      })}
+                                      aria-label="Duplizieren"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                  {onEdit && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                      onClick={() => startEdit(entry)}
+                                      aria-label="Bearbeiten"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    onClick={() => onDelete(entry.id)}
+                                    aria-label="Löschen"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
                               )}
-                              {onEdit && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                  onClick={() => startEdit(entry)}
-                                  aria-label="Bearbeiten"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => onDelete(entry.id)}
-                                aria-label="Löschen"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
                             </div>
                           </div>
                         )}

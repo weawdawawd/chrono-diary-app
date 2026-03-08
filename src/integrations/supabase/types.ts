@@ -40,6 +40,7 @@ export type Database = {
       }
       work_entries: {
         Row: {
+          archived: boolean
           created_at: string
           date: string
           description: string
@@ -50,6 +51,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived?: boolean
           created_at?: string
           date: string
           description: string
@@ -60,6 +62,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived?: boolean
           created_at?: string
           date?: string
           description?: string
