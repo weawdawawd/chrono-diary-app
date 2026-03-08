@@ -103,9 +103,9 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate }
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                   >
-                    <Card className="group bg-card hover:shadow-md transition-all border-l-4 border-l-primary/20 hover:border-l-primary/60">
-                      <CardContent className="p-4">
-                        {editingId === entry.id ? (
+                    <Card className={`group bg-card hover:shadow-md transition-all border-l-4 ${entry.archived ? "border-l-muted-foreground/30 opacity-75" : "border-l-primary/20 hover:border-l-primary/60"}`}>
+                       <CardContent className="p-4">
+                         {editingId === entry.id && !entry.archived ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-2">
                               <Input type="date" value={editData.date} onChange={(e) => setEditData(d => ({ ...d, date: e.target.value }))} className="text-xs h-9" />
