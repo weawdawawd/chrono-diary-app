@@ -114,6 +114,8 @@ const Index = () => {
           />
         )}
 
+        <DailyReminder />
+
         <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} />
 
         {entriesLoading ? (
