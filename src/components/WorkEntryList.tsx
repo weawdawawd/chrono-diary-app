@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy } from "lucide-react";
+import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy, Lock } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   entries: WorkEntry[];
