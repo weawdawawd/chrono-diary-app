@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkEntries } from "@/hooks/useWorkEntries";
 import { useSavedLocations } from "@/hooks/useSavedLocations";
+import { useProjects } from "@/hooks/useProjects";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
@@ -10,6 +12,7 @@ import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import MonthFilter from "@/components/MonthFilter";
 import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
+import SettingsDialog from "@/components/SettingsDialog";
 import { exportToPDF } from "@/lib/exportPDF";
 import { exportToCSV } from "@/lib/exportCSV";
 import { Button } from "@/components/ui/button";
@@ -24,6 +27,8 @@ const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { entries, loading: entriesLoading, addEntry, deleteEntry, editEntry } = useWorkEntries(user?.id);
   const savedLocations = useSavedLocations(user?.id);
+  const { projects, addProject, deleteProject } = useProjects(user?.id);
+  const { settings, upsertSettings } = useUserSettings(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,6 +99,13 @@ const Index = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            <SettingsDialog
+              settings={settings}
+              onSaveSettings={upsertSettings}
+              projects={projects}
+              onAddProject={addProject}
+              onDeleteProject={deleteProject}
+            />
             <DarkModeToggle />
             <Button variant="ghost" size="icon" onClick={signOut} aria-label="Abmelden" className="h-9 w-9">
               <LogOut className="w-4 h-4" />
@@ -104,7 +116,7 @@ const Index = () => {
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          {entries.length > 0 && <WorkStats entries={filteredEntries} />}
+          {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
         </motion.div>
 
         {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
@@ -138,14 +150,12 @@ const Index = () => {
           </div>
         )}
 
-
-
-        <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} />
+        <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} projects={projects} />
 
         {entriesLoading ? (
           <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
         ) : (
-          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} />
+          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} projects={projects} />
         )}
       </main>
     </div>
