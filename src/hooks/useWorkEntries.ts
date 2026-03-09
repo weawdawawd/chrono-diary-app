@@ -42,6 +42,9 @@ export function useWorkEntries(userId: string | undefined) {
     endTime: string;
     location: string;
     description: string;
+    breakMinutes?: number;
+    includeBreak?: boolean;
+    project?: string | null;
   }) => {
     if (!userId) return;
     const { error } = await supabase.from("work_entries").insert({
@@ -51,6 +54,9 @@ export function useWorkEntries(userId: string | undefined) {
       end_time: entry.endTime,
       location: entry.location,
       description: entry.description,
+      break_minutes: entry.breakMinutes ?? 0,
+      include_break: entry.includeBreak ?? true,
+      project: entry.project ?? null,
     });
     if (error) throw error;
 

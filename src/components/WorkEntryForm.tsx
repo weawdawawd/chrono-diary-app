@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, MapPin, Send } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, MapPin, Send, Coffee } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import type { Project } from "@/hooks/useProjects";
 
 interface Props {
   onAdd: (entry: {
@@ -14,17 +17,24 @@ interface Props {
     endTime: string;
     location: string;
     description: string;
+    breakMinutes: number;
+    includeBreak: boolean;
+    project: string | null;
   }) => void;
   savedLocations: string[];
+  projects: Project[];
 }
 
-export default function WorkEntryForm({ onAdd, savedLocations }: Props) {
+export default function WorkEntryForm({ onAdd, savedLocations, projects }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [breakMinutes, setBreakMinutes] = useState(0);
+  const [includeBreak, setIncludeBreak] = useState(true);
+  const [project, setProject] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const locationRef = useRef<HTMLDivElement>(null);
 
@@ -54,9 +64,13 @@ export default function WorkEntryForm({ onAdd, savedLocations }: Props) {
       endTime,
       location: location.trim(),
       description: description.trim(),
+      breakMinutes,
+      includeBreak,
+      project,
     });
     setLocation("");
     setDescription("");
+    setBreakMinutes(0);
     toast.success("Eintrag gespeichert!");
   };
 
@@ -89,6 +103,57 @@ export default function WorkEntryForm({ onAdd, savedLocations }: Props) {
                 <Input id="end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-10" />
               </div>
             </div>
+
+            {/* Break + Project row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium flex items-center gap-1.5">
+                  <Coffee className="w-3 h-3" /> Pause (Min.)
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={480}
+                    value={breakMinutes}
+                    onChange={(e) => setBreakMinutes(Math.max(0, Number(e.target.value)))}
+                    className="h-10 w-24"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={includeBreak}
+                      onCheckedChange={setIncludeBreak}
+                      id="include-break"
+                    />
+                    <Label htmlFor="include-break" className="text-xs text-muted-foreground cursor-pointer">
+                      {includeBreak ? "Abziehen" : "Nicht abziehen"}
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              {projects.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">Projekt</Label>
+                  <Select value={project || "none"} onValueChange={(v) => setProject(v === "none" ? null : v)}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Kein Projekt" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Kein Projekt</SelectItem>
+                      {projects.map((p) => (
+                        <SelectItem key={p.id} value={p.name}>
+                          <span className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: p.color }} />
+                            {p.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1 relative" ref={locationRef}>
               <Label htmlFor="location" className="text-xs font-medium">Ort</Label>
               <Input
