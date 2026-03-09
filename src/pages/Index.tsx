@@ -17,6 +17,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Briefcase, Download, LogOut, FileText, FileSpreadsheet } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -24,14 +26,24 @@ const Index = () => {
   const savedLocations = useSavedLocations(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredEntries = useMemo(() => {
-    if (!filterMonth) return entries;
-    return entries.filter((e) => {
-      const d = new Date(e.date);
-      return d.getMonth() === filterMonth.getMonth() && d.getFullYear() === filterMonth.getFullYear();
-    });
-  }, [entries, filterMonth]);
+    let result = entries;
+    if (filterMonth) {
+      result = result.filter((e) => {
+        const d = new Date(e.date);
+        return d.getMonth() === filterMonth.getMonth() && d.getFullYear() === filterMonth.getFullYear();
+      });
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((e) =>
+        e.location.toLowerCase().includes(q) || e.description.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [entries, filterMonth, searchQuery]);
 
   if (authLoading) {
     return (
@@ -114,7 +126,19 @@ const Index = () => {
           />
         )}
 
-        <DailyReminder />
+        {entries.length > 0 && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Ort oder Tätigkeit suchen…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
+          </div>
+        )}
+
+
 
         <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} />
 
