@@ -6,11 +6,15 @@ import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
 import WeeklyChart from "@/components/WeeklyChart";
+import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import MonthFilter from "@/components/MonthFilter";
+import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import { exportToPDF } from "@/lib/exportPDF";
+import { exportToCSV } from "@/lib/exportCSV";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Download, LogOut } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Briefcase, Download, LogOut, FileText, FileSpreadsheet } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 
@@ -59,10 +63,24 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-1">
             {filteredEntries.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => exportToPDF(filteredEntries)} className="h-8 text-xs">
-                <Download className="w-3.5 h-3.5 mr-1" />
-                PDF
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <Download className="w-3.5 h-3.5 mr-1" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportToPDF(filteredEntries)}>
+                    <FileText className="w-3.5 h-3.5 mr-2" />
+                    PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportToCSV(filteredEntries)}>
+                    <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
+                    CSV / Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <DarkModeToggle />
             <Button variant="ghost" size="icon" onClick={signOut} aria-label="Abmelden" className="h-9 w-9">
@@ -78,6 +96,7 @@ const Index = () => {
         </motion.div>
 
         {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
+        {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
 
         {entries.length > 0 && (
           <MonthFilter
@@ -94,6 +113,8 @@ const Index = () => {
             onReset={() => setFilterMonth(null)}
           />
         )}
+
+        <DailyReminder />
 
         <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} />
 
