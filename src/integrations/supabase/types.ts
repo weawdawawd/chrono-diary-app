@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      projects: {
+        Row: {
+          client: string | null
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          client?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          client?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_locations: {
         Row: {
           id: string
@@ -38,37 +65,67 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          weekly_target_hours: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          weekly_target_hours?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          weekly_target_hours?: number
+        }
+        Relationships: []
+      }
       work_entries: {
         Row: {
           archived: boolean
+          break_minutes: number
           created_at: string
           date: string
           description: string
           end_time: string
           id: string
+          include_break: boolean
           location: string
+          project: string | null
           start_time: string
           user_id: string
         }
         Insert: {
           archived?: boolean
+          break_minutes?: number
           created_at?: string
           date: string
           description: string
           end_time: string
           id?: string
+          include_break?: boolean
           location: string
+          project?: string | null
           start_time: string
           user_id: string
         }
         Update: {
           archived?: boolean
+          break_minutes?: number
           created_at?: string
           date?: string
           description?: string
           end_time?: string
           id?: string
+          include_break?: boolean
           location?: string
+          project?: string | null
           start_time?: string
           user_id?: string
         }
