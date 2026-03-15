@@ -18,36 +18,38 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    let mounted = true;
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const params = new URLSearchParams(hash);
+    if (params.get("type") === "recovery" || params.get("access_token")) {
+      setIsRecovery(true);
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && !!session)) {
         setIsRecovery(true);
         setChecking(false);
       }
     });
 
-    // Also check if already in a recovery session via hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
-      setChecking(false);
-    }
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    // Give it a moment to process the tokens
-    const timeout = setTimeout(() => {
+      if (!mounted) return;
+      if (session) setIsRecovery(true);
       setChecking(false);
-    }, 3000);
+    })();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
-      clearTimeout(timeout);
     };
   }, []);
-
-  useEffect(() => {
-    if (!checking && !isRecovery) {
-      navigate("/");
-    }
-  }, [checking, isRecovery, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +74,28 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-sm text-muted-foreground animate-pulse">Sicherer Link wird geprüft…</div>
+      </div>
+    );
+  }
+
+  if (!isRecovery) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-card border rounded-2xl shadow-lg p-6 space-y-4 text-center">
+          <h1 className="font-display font-bold text-xl">Reset-Link ungültig oder abgelaufen</h1>
+          <p className="text-sm text-muted-foreground">Bitte fordere einen neuen Link zum Zurücksetzen an.</p>
+          <Button onClick={() => navigate("/")} className="w-full h-11 text-sm font-semibold">
+            Zur Login-Seite
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
