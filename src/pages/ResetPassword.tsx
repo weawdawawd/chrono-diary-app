@@ -75,6 +75,28 @@ export default function ResetPassword() {
     }
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-sm text-muted-foreground animate-pulse">Sicherer Link wird geprüft…</div>
+      </div>
+    );
+  }
+
+  if (!isRecovery) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-card border rounded-2xl shadow-lg p-6 space-y-4 text-center">
+          <h1 className="font-display font-bold text-xl">Reset-Link ungültig oder abgelaufen</h1>
+          <p className="text-sm text-muted-foreground">Bitte fordere einen neuen Link zum Zurücksetzen an.</p>
+          <Button onClick={() => navigate("/")} className="w-full h-11 text-sm font-semibold">
+            Zur Login-Seite
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <motion.div
