@@ -79,26 +79,7 @@ const Index = () => {
             <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
           </div>
           <div className="flex items-center gap-1">
-            {filteredEntries.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <Download className="w-3.5 h-3.5 mr-1" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => exportToPDF(filteredEntries)}>
-                    <FileText className="w-3.5 h-3.5 mr-2" />
-                    PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportToCSV(filteredEntries)}>
-                    <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
-                    CSV / Excel
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {entries.length > 0 && <ExportDialog entries={entries} />}
             <SettingsDialog
               settings={settings}
               onSaveSettings={upsertSettings}
