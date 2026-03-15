@@ -13,16 +13,41 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have a recovery session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+        setChecking(false);
+      }
+    });
+
+    // Also check if already in a recovery session via hash
     const hash = window.location.hash;
-    if (!hash.includes("type=recovery")) {
-      // No recovery token, redirect
+    if (hash.includes("type=recovery")) {
+      setIsRecovery(true);
+      setChecking(false);
+    }
+
+    // Give it a moment to process the tokens
+    const timeout = setTimeout(() => {
+      setChecking(false);
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!checking && !isRecovery) {
       navigate("/");
     }
-  }, [navigate]);
+  }, [checking, isRecovery, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
