@@ -26,7 +26,7 @@ interface Props {
   savedActivities?: string[];
 }
 
-export default function WorkEntryForm({ onAdd, savedLocations, projects }: Props) {
+export default function WorkEntryForm({ onAdd, savedLocations, projects, savedActivities = [] }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
   const [startTime, setStartTime] = useState("08:00");
@@ -37,7 +37,9 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects }: Props
   const [includeBreak, setIncludeBreak] = useState(true);
   const [project, setProject] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showActivitySuggestions, setShowActivitySuggestions] = useState(false);
   const locationRef = useRef<HTMLDivElement>(null);
+  const activityRef = useRef<HTMLDivElement>(null);
 
   const filteredLocations = savedLocations.filter((l) =>
     l.toLowerCase().includes(location.toLowerCase()) && l.toLowerCase() !== location.toLowerCase()
