@@ -54,6 +54,9 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
       if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
+      if (activityRef.current && !activityRef.current.contains(e.target as Node)) {
+        setShowActivitySuggestions(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
