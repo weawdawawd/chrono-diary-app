@@ -18,36 +18,38 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    let mounted = true;
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const params = new URLSearchParams(hash);
+    if (params.get("type") === "recovery" || params.get("access_token")) {
+      setIsRecovery(true);
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && !!session)) {
         setIsRecovery(true);
         setChecking(false);
       }
     });
 
-    // Also check if already in a recovery session via hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
-      setChecking(false);
-    }
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    // Give it a moment to process the tokens
-    const timeout = setTimeout(() => {
+      if (!mounted) return;
+      if (session) setIsRecovery(true);
       setChecking(false);
-    }, 3000);
+    })();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
-      clearTimeout(timeout);
     };
   }, []);
-
-  useEffect(() => {
-    if (!checking && !isRecovery) {
-      navigate("/");
-    }
-  }, [checking, isRecovery, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
