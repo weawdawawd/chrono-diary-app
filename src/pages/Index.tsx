@@ -4,6 +4,7 @@ import { useWorkEntries } from "@/hooks/useWorkEntries";
 import { useSavedLocations } from "@/hooks/useSavedLocations";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useSavedActivities } from "@/hooks/useSavedActivities";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
