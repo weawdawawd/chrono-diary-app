@@ -131,7 +131,7 @@ const Index = () => {
           </div>
         )}
 
-        <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} projects={projects} />
+        <WorkEntryForm onAdd={(entry) => { addEntry(entry); upsertActivity(entry.description); }} savedLocations={savedLocations} projects={projects} savedActivities={savedActivities} />
 
         {entriesLoading ? (
           <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
