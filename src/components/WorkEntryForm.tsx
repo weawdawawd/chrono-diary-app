@@ -201,16 +201,42 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
                 </motion.div>
               )}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 relative" ref={activityRef}>
               <Label htmlFor="desc" className="text-xs font-medium">Tätigkeit</Label>
-              <Textarea
+              <Input
                 id="desc"
                 placeholder="Was hast du gemacht?"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  setShowActivitySuggestions(true);
+                }}
+                onFocus={() => setShowActivitySuggestions(true)}
                 maxLength={1000}
+                className="h-10"
               />
+              {showActivitySuggestions && filteredActivities.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute z-20 top-full left-0 right-0 mt-1 bg-card border rounded-xl shadow-lg overflow-hidden max-h-40 overflow-y-auto"
+                >
+                  {filteredActivities.slice(0, 8).map((act) => (
+                    <button
+                      key={act}
+                      type="button"
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted flex items-center gap-2 transition-colors"
+                      onClick={() => {
+                        setDescription(act);
+                        setShowActivitySuggestions(false);
+                      }}
+                    >
+                      <FileText className="w-3.5 h-3.5 text-accent shrink-0" />
+                      {act}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
             </div>
             <Button type="submit" className="w-full sm:w-auto h-10">
               <Send className="w-4 h-4 mr-1.5" />
