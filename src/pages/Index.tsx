@@ -28,6 +28,7 @@ const Index = () => {
   const savedLocations = useSavedLocations(user?.id);
   const { projects, addProject, deleteProject } = useProjects(user?.id);
   const { settings, upsertSettings } = useUserSettings(user?.id);
+  const { activities: savedActivities, upsertActivity } = useSavedActivities(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
