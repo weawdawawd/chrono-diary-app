@@ -41,6 +41,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_activities: {
+        Row: {
+          id: string
+          last_used_at: string
+          name: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_used_at?: string
+          name: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_used_at?: string
+          name?: string
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_locations: {
         Row: {
           id: string

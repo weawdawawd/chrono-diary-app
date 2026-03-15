@@ -4,6 +4,7 @@ import { useWorkEntries } from "@/hooks/useWorkEntries";
 import { useSavedLocations } from "@/hooks/useSavedLocations";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useSavedActivities } from "@/hooks/useSavedActivities";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
@@ -13,11 +14,9 @@ import MonthFilter from "@/components/MonthFilter";
 import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
-import { exportToPDF } from "@/lib/exportPDF";
-import { exportToCSV } from "@/lib/exportCSV";
+import ExportDialog from "@/components/ExportDialog";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Briefcase, Download, LogOut, FileText, FileSpreadsheet } from "lucide-react";
+import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -29,6 +28,7 @@ const Index = () => {
   const savedLocations = useSavedLocations(user?.id);
   const { projects, addProject, deleteProject } = useProjects(user?.id);
   const { settings, upsertSettings } = useUserSettings(user?.id);
+  const { activities: savedActivities, upsertActivity } = useSavedActivities(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,26 +79,7 @@ const Index = () => {
             <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
           </div>
           <div className="flex items-center gap-1">
-            {filteredEntries.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <Download className="w-3.5 h-3.5 mr-1" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => exportToPDF(filteredEntries)}>
-                    <FileText className="w-3.5 h-3.5 mr-2" />
-                    PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportToCSV(filteredEntries)}>
-                    <FileSpreadsheet className="w-3.5 h-3.5 mr-2" />
-                    CSV / Excel
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {entries.length > 0 && <ExportDialog entries={entries} />}
             <SettingsDialog
               settings={settings}
               onSaveSettings={upsertSettings}
@@ -150,7 +131,7 @@ const Index = () => {
           </div>
         )}
 
-        <WorkEntryForm onAdd={addEntry} savedLocations={savedLocations} projects={projects} />
+        <WorkEntryForm onAdd={(entry) => { addEntry(entry); upsertActivity(entry.description); }} savedLocations={savedLocations} projects={projects} savedActivities={savedActivities} />
 
         {entriesLoading ? (
           <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
