@@ -23,6 +23,7 @@ interface Props {
   }) => void;
   savedLocations: string[];
   projects: Project[];
+  savedActivities?: string[];
 }
 
 export default function WorkEntryForm({ onAdd, savedLocations, projects }: Props) {
