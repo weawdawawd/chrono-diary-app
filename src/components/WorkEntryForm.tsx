@@ -41,6 +41,10 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
   const locationRef = useRef<HTMLDivElement>(null);
   const activityRef = useRef<HTMLDivElement>(null);
 
+  const filteredActivities = savedActivities.filter((a) =>
+    a.toLowerCase().includes(description.toLowerCase()) && a.toLowerCase() !== description.toLowerCase()
+  );
+
   const filteredLocations = savedLocations.filter((l) =>
     l.toLowerCase().includes(location.toLowerCase()) && l.toLowerCase() !== location.toLowerCase()
   );
