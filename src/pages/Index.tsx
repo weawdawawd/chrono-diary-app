@@ -10,6 +10,7 @@ import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
 import WeeklyChart from "@/components/WeeklyChart";
 import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
+import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
 import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
