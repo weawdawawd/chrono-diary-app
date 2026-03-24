@@ -24,7 +24,7 @@ import { Search } from "lucide-react";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { entries, loading: entriesLoading, addEntry, deleteEntry, editEntry } = useWorkEntries(user?.id);
+  const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(user?.id);
   const savedLocations = useSavedLocations(user?.id);
   const { projects, addProject, deleteProject } = useProjects(user?.id);
   const { settings, upsertSettings } = useUserSettings(user?.id);
