@@ -102,6 +102,7 @@ const Index = () => {
 
         {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
         {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
+        {entries.length > 0 && <WorkCalendar entries={entries} />}
 
         {entries.length > 0 && (
           <MonthFilter
