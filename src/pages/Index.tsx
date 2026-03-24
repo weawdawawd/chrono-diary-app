@@ -10,6 +10,7 @@ import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
 import WeeklyChart from "@/components/WeeklyChart";
 import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
+import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
 import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
@@ -102,6 +103,7 @@ const Index = () => {
 
         {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
         {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
+        {entries.length > 0 && <WorkCalendar entries={entries} />}
 
         {entries.length > 0 && (
           <MonthFilter
