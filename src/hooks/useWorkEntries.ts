@@ -85,11 +85,26 @@ export function useWorkEntries(userId: string | undefined) {
     await fetchEntries();
   };
 
+  const deleteEntriesByDateRange = async (from: string, to: string) => {
+    if (!userId) return 0;
+    const { data } = await supabase
+      .from("work_entries")
+      .select("id")
+      .eq("user_id", userId)
+      .gte("date", from)
+      .lte("date", to);
+    if (!data || data.length === 0) return 0;
+    const ids = data.map((d) => d.id);
+    await supabase.from("work_entries").delete().in("id", ids);
+    await fetchEntries();
+    return ids.length;
+  };
+
   const editEntry = async (id: string, updates: { date: string; start_time: string; end_time: string; location: string; description: string }) => {
     const { error } = await supabase.from("work_entries").update(updates).eq("id", id);
     if (error) throw error;
     await fetchEntries();
   };
 
-  return { entries, loading, addEntry, deleteEntry, editEntry };
+  return { entries, loading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry };
 }
