@@ -4,11 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy, Lock, Coffee, FolderOpen } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { MapPin, Clock, Calendar, Trash2, FileText, Pencil, Check, X, Copy, Lock, Coffee, FolderOpen, CalendarRange } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import type { Project } from "@/hooks/useProjects";
 
 interface Props {
@@ -16,12 +19,17 @@ interface Props {
   onDelete: (id: string) => void;
   onEdit?: (id: string, updates: { date: string; start_time: string; end_time: string; location: string; description: string }) => void;
   onDuplicate?: (entry: { date: string; startTime: string; endTime: string; location: string; description: string; breakMinutes: number; includeBreak: boolean; project: string | null }) => void;
+  onBulkDelete?: (from: string, to: string) => Promise<number>;
   projects?: Project[];
 }
 
-export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, projects = [] }: Props) {
+export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, onBulkDelete, projects = [] }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ date: "", start_time: "", end_time: "", location: "", description: "" });
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkFrom, setBulkFrom] = useState("");
+  const [bulkTo, setBulkTo] = useState("");
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const getProjectColor = (name: string | null) => {
     if (!name) return null;
