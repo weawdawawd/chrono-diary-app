@@ -136,7 +136,7 @@ const Index = () => {
         {entriesLoading ? (
           <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
         ) : (
-          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} projects={projects} />
+          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} projects={projects} onBulkDelete={deleteEntriesByDateRange} />
         )}
       </main>
     </div>
