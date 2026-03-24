@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, MapPin, Send, Coffee, FileText } from "lucide-react";
+import { Plus, MapPin, Send, Coffee, FileText, CalendarRange } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import type { Project } from "@/hooks/useProjects";
@@ -29,6 +28,8 @@ interface Props {
 export default function WorkEntryForm({ onAdd, savedLocations, projects, savedActivities = [] }: Props) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
+  const [dateEnd, setDateEnd] = useState("");
+  const [isRange, setIsRange] = useState(false);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("17:00");
   const [location, setLocation] = useState("");
@@ -62,26 +63,64 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const getDatesInRange = (start: string, end: string): string[] => {
+    const dates: string[] = [];
+    const current = new Date(start);
+    const last = new Date(end);
+    while (current <= last) {
+      dates.push(current.toISOString().split("T")[0]);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!location.trim() || !description.trim()) {
       toast.error("Bitte alle Felder ausfüllen");
       return;
     }
-    onAdd({
-      date,
-      startTime,
-      endTime,
-      location: location.trim(),
-      description: description.trim(),
-      breakMinutes,
-      includeBreak,
-      project,
-    });
+
+    if (isRange && dateEnd) {
+      if (dateEnd < date) {
+        toast.error("End-Datum muss nach Start-Datum liegen");
+        return;
+      }
+      const dates = getDatesInRange(date, dateEnd);
+      if (dates.length > 60) {
+        toast.error("Maximal 60 Tage auf einmal");
+        return;
+      }
+      dates.forEach((d) => {
+        onAdd({
+          date: d,
+          startTime,
+          endTime,
+          location: location.trim(),
+          description: description.trim(),
+          breakMinutes,
+          includeBreak,
+          project,
+        });
+      });
+      toast.success(`${dates.length} Einträge gespeichert!`);
+    } else {
+      onAdd({
+        date,
+        startTime,
+        endTime,
+        location: location.trim(),
+        description: description.trim(),
+        breakMinutes,
+        includeBreak,
+        project,
+      });
+      toast.success("Eintrag gespeichert!");
+    }
+
     setLocation("");
     setDescription("");
     setBreakMinutes(0);
-    toast.success("Eintrag gespeichert!");
   };
 
   return (
@@ -99,17 +138,32 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
         </div>
         <div className="px-5 pb-5">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Date range toggle */}
+            <div className="flex items-center gap-2">
+              <Switch checked={isRange} onCheckedChange={setIsRange} id="range-mode" />
+              <Label htmlFor="range-mode" className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1.5">
+                <CalendarRange className="w-3.5 h-3.5" />
+                {isRange ? "Zeitraum (mehrere Tage)" : "Einzelner Tag"}
+              </Label>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="date" className="text-xs font-medium">Datum</Label>
+              <div className={`space-y-1 ${isRange ? "sm:col-span-1" : ""}`}>
+                <Label htmlFor="date" className="text-xs font-medium">{isRange ? "Von" : "Datum"}</Label>
                 <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10" />
               </div>
+              {isRange && (
+                <div className="space-y-1">
+                  <Label htmlFor="date-end" className="text-xs font-medium">Bis</Label>
+                  <Input id="date-end" type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} min={date} className="h-10" />
+                </div>
+              )}
               <div className="space-y-1">
-                <Label htmlFor="start" className="text-xs font-medium">Von</Label>
+                <Label htmlFor="start" className="text-xs font-medium">Uhrzeit von</Label>
                 <Input id="start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-10" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="end" className="text-xs font-medium">Bis</Label>
+                <Label htmlFor="end" className="text-xs font-medium">Uhrzeit bis</Label>
                 <Input id="end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-10" />
               </div>
             </div>
@@ -240,7 +294,7 @@ export default function WorkEntryForm({ onAdd, savedLocations, projects, savedAc
             </div>
             <Button type="submit" className="w-full sm:w-auto h-10">
               <Send className="w-4 h-4 mr-1.5" />
-              Eintrag speichern
+              {isRange && dateEnd ? `Einträge speichern` : "Eintrag speichern"}
             </Button>
           </form>
         </div>
