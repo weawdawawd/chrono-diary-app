@@ -133,7 +133,7 @@ export default function AdminDashboard() {
       });
     }
     const totalMin = entries.reduce(
-      (s, e) => s + calculateDurationMinutes(e.start_time, e.end_time, e.break_minutes, e.include_break),
+      (s, e) => s + entryMinutes(e),
       0
     );
     const empName = profileLabel(selectedEmployee);
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
               {sortedDates.map((date) => {
                 const dayEntries = grouped[date];
                 const dayMin = dayEntries.reduce(
-                  (s, e) => s + calculateDurationMinutes(e.start_time, e.end_time, e.break_minutes, e.include_break),
+                  (s, e) => s + entryMinutes(e),
                   0
                 );
                 return (
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                       </Badge>
                     </div>
                     {dayEntries.map((e) => {
-                      const min = calculateDurationMinutes(e.start_time, e.end_time, e.break_minutes, e.include_break);
+                      const min = entryMinutes(e);
                       return (
                         <Card key={e.id} className="p-3 space-y-1.5">
                           <div className="flex items-center gap-2 text-sm font-medium">
