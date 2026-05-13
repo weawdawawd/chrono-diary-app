@@ -48,7 +48,6 @@ export default function AuthPage() {
 
   const titles = {
     login: { h: "Willkommen zurück", sub: "Melde dich an, um fortzufahren" },
-    register: { h: "Konto erstellen", sub: "Registriere dich kostenlos" },
     forgot: { h: "Passwort vergessen", sub: "Wir senden dir einen Link zum Zurücksetzen" },
   };
 
@@ -137,8 +136,6 @@ export default function AuthPage() {
                     <span className="animate-pulse">Laden...</span>
                   ) : mode === "login" ? (
                     <>Anmelden <ArrowRight className="w-4 h-4 ml-1" /></>
-                  ) : mode === "register" ? (
-                    <>Registrieren <ArrowRight className="w-4 h-4 ml-1" /></>
                   ) : (
                     <>
                       <KeyRound className="w-4 h-4 mr-1" /> Link senden
@@ -165,13 +162,9 @@ export default function AuthPage() {
                   <ArrowLeft className="w-3.5 h-3.5" /> Zurück zur Anmeldung
                 </button>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === "login" ? "register" : "login")}
-                  className="w-full text-center text-sm text-accent font-medium hover:underline underline-offset-4 transition-colors"
-                >
-                  {mode === "login" ? "Neues Konto erstellen" : "Ich habe bereits ein Konto"}
-                </button>
+                <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                  Neue Konten können nur per Einladungslink vom Admin erstellt werden.
+                </p>
               )}
             </motion.div>
           </AnimatePresence>
