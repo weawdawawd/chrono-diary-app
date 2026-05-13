@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useWorkEntries } from "@/hooks/useWorkEntries";
 import { useSavedLocations } from "@/hooks/useSavedLocations";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useSavedActivities } from "@/hooks/useSavedActivities";
+import { supabase } from "@/integrations/supabase/client";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
@@ -16,15 +18,18 @@ import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
+import AdminPanel from "@/components/AdminPanel";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut } from "lucide-react";
+import { Briefcase, LogOut, ShieldCheck, Users } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole(user?.id);
   const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(user?.id);
   const savedLocations = useSavedLocations(user?.id);
   const { projects, addProject, deleteProject } = useProjects(user?.id);
@@ -33,6 +38,18 @@ const Index = () => {
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [employeeFilter, setEmployeeFilter] = useState<string>("all");
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase.from("profiles").select("user_id, email, display_name").then(({ data }) => {
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((p: any) => { map[p.user_id] = p.display_name || p.email || p.user_id.slice(0, 6); });
+      setProfilesMap(map);
+    });
+  }, [isAdmin]);
 
   const filteredEntries = useMemo(() => {
     let result = entries;
