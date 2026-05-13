@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useWorkEntries } from "@/hooks/useWorkEntries";
@@ -6,7 +6,6 @@ import { useSavedLocations } from "@/hooks/useSavedLocations";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useSavedActivities } from "@/hooks/useSavedActivities";
-import { supabase } from "@/integrations/supabase/client";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
@@ -14,18 +13,16 @@ import WeeklyChart from "@/components/WeeklyChart";
 import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
-import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
-import AdminPanel from "@/components/AdminPanel";
+import AdminDashboard from "@/pages/AdminDashboard";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut, ShieldCheck, Users } from "lucide-react";
+import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -38,30 +35,9 @@ const Index = () => {
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [employeeFilter, setEmployeeFilter] = useState<string>("all");
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    supabase.from("profiles").select("user_id, email, display_name").then(({ data }) => {
-      const map: Record<string, string> = {};
-      (data ?? []).forEach((p: any) => { map[p.user_id] = p.display_name || p.email || p.user_id.slice(0, 6); });
-      setProfilesMap(map);
-    });
-  }, [isAdmin]);
-
-  const employeeOptions = useMemo(() => {
-    if (!isAdmin) return [];
-    const ids = Array.from(new Set(entries.map((e) => e.user_id)));
-    return ids.map((id) => ({ id, label: profilesMap[id] ?? id.slice(0, 8) }));
-  }, [entries, profilesMap, isAdmin]);
 
   const filteredEntries = useMemo(() => {
     let result = entries;
-    if (isAdmin && employeeFilter !== "all") {
-      result = result.filter((e) => e.user_id === employeeFilter);
-    }
     if (filterMonth) {
       result = result.filter((e) => {
         const d = new Date(e.date);
@@ -75,9 +51,9 @@ const Index = () => {
       );
     }
     return result;
-  }, [entries, filterMonth, searchQuery, isAdmin, employeeFilter]);
+  }, [entries, filterMonth, searchQuery]);
 
-  if (authLoading) {
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -94,6 +70,10 @@ const Index = () => {
     return <AuthPage />;
   }
 
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-10">
@@ -106,17 +86,6 @@ const Index = () => {
             <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
           </div>
           <div className="flex items-center gap-1">
-            {isAdmin && (
-              <Button
-                variant={showAdminPanel ? "default" : "ghost"}
-                size="icon"
-                onClick={() => setShowAdminPanel((v) => !v)}
-                aria-label="Admin"
-                className="h-9 w-9"
-              >
-                <ShieldCheck className="w-4 h-4" />
-              </Button>
-            )}
             {entries.length > 0 && <ExportDialog entries={entries} />}
             <SettingsDialog
               settings={settings}
@@ -134,22 +103,13 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
-        {isAdmin && showAdminPanel && <AdminPanel adminUserId={user.id} />}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+          {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
+        </motion.div>
 
-        {isAdmin && employeeOptions.length > 0 && (
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Mitarbeiter</SelectItem>
-                {employeeOptions.map((o) => (
-                  <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
+        {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
+        {entries.length > 0 && <WorkCalendar entries={entries} />}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
         </motion.div>
