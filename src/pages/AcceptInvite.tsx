@@ -23,7 +23,7 @@ export default function AcceptInvite() {
     (async () => {
       const { data } = await supabase
         .from("invitations")
-        .select("id, used_at, expires_at, email")
+        .select("id, used_at, expires_at, email, note")
         .eq("token", token)
         .maybeSingle();
       if (!data) setErrorMsg("Einladung ungültig");
@@ -32,6 +32,7 @@ export default function AcceptInvite() {
       else {
         setValid(true);
         if (data.email) setEmail(data.email);
+        if (data.note) setDisplayName(data.note);
       }
       setChecking(false);
     })();
