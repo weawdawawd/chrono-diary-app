@@ -23,6 +23,11 @@ import { exportToCSV } from "@/lib/exportCSV";
 import type { Tables } from "@/integrations/supabase/types";
 import { calculateDurationMinutes } from "@/lib/types";
 
+const entryMinutes = (e: { start_time: string; end_time: string; break_minutes: number; include_break: boolean }) => {
+  const m = calculateDurationMinutes(e.start_time, e.end_time);
+  return e.include_break ? Math.max(0, m - (e.break_minutes ?? 0)) : m;
+};
+
 type Profile = { user_id: string; email: string | null; display_name: string | null };
 type Invitation = Tables<"invitations">;
 type WorkEntry = Tables<"work_entries">;
@@ -75,9 +80,7 @@ export default function AdminDashboard() {
     for (const e of allEntries) {
       const cur = map.get(e.user_id) ?? { count: 0, minutes: 0 };
       cur.count += 1;
-      cur.minutes += calculateDurationMinutes(
-        e.start_time, e.end_time, e.break_minutes, e.include_break
-      );
+      cur.minutes += entryMinutes(e);
       map.set(e.user_id, cur);
     }
     return map;
