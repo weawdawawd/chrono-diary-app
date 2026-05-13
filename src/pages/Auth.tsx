@@ -7,7 +7,7 @@ import { Briefcase, LogIn, UserPlus, Clock, ArrowRight, KeyRound, ArrowLeft } fr
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Mode = "login" | "register" | "forgot";
+type Mode = "login" | "forgot";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
