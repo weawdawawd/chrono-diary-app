@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useWorkEntries } from "@/hooks/useWorkEntries";
@@ -6,7 +6,6 @@ import { useSavedLocations } from "@/hooks/useSavedLocations";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useSavedActivities } from "@/hooks/useSavedActivities";
-import { supabase } from "@/integrations/supabase/client";
 import WorkEntryForm from "@/components/WorkEntryForm";
 import WorkEntryList from "@/components/WorkEntryList";
 import WorkStats from "@/components/WorkStats";
@@ -14,18 +13,16 @@ import WeeklyChart from "@/components/WeeklyChart";
 import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
-import DailyReminder from "@/components/DailyReminder";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
-import AdminPanel from "@/components/AdminPanel";
+import AdminDashboard from "@/pages/AdminDashboard";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut, ShieldCheck, Users } from "lucide-react";
+import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
