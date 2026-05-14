@@ -361,9 +361,14 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     {!used && !expired && (
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyLink(inv.token)}>
-                        <Copy className="w-3.5 h-3.5" />
-                      </Button>
+                      <>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => shareWhatsApp(inv.token, inv.note)} title="Per WhatsApp senden">
+                          <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyLink(inv.token)} title="Link kopieren">
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
                     )}
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteInvitation(inv.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
