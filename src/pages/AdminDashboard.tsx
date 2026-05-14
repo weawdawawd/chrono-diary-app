@@ -320,8 +320,21 @@ export default function AdminDashboard() {
                       Der Name hilft dir, den Mitarbeiter später in der Liste wiederzufinden.
                     </p>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">WhatsApp-Nummer (optional)</Label>
+                    <Input
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="z.B. 491701234567"
+                      inputMode="tel"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Mit Ländervorwahl ohne "+" oder "00" (z.B. 49 für Deutschland). Leer lassen, um den Kontakt in WhatsApp selbst zu wählen.
+                    </p>
+                  </div>
                   <Button className="w-full" onClick={createInvitation} disabled={creating}>
-                    {creating ? "Erstelle…" : "Link erstellen & kopieren"}
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    {creating ? "Erstelle…" : "Erstellen & per WhatsApp senden"}
                   </Button>
                 </div>
               </DialogContent>
