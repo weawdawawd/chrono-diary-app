@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Briefcase, LogOut, ShieldCheck, Plus, Copy, Trash2, Users, Link2,
-  ChevronLeft, FileText, FileSpreadsheet, Eye, MapPin, Clock, Coffee,
+  ChevronLeft, FileText, FileSpreadsheet, Eye, MapPin, Clock, Coffee, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   // Invite form
   const [inviteOpen, setInviteOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
   const [creating, setCreating] = useState(false);
 
   // Filter for entries (month)
@@ -104,7 +105,10 @@ export default function AdminDashboard() {
       const link = `${window.location.origin}/invite/${data.token}`;
       try { await navigator.clipboard.writeText(link); } catch {}
       toast.success("Einladungslink kopiert!", { description: link });
+      // WhatsApp öffnen
+      openWhatsApp(link, newName.trim(), newPhone.trim());
       setNewName("");
+      setNewPhone("");
       setInviteOpen(false);
       refresh();
     } catch (err: any) {
@@ -120,10 +124,26 @@ export default function AdminDashboard() {
     toast.success("Link kopiert!");
   };
 
+  const shareWhatsApp = (token: string, name: string | null) => {
+    const link = `${window.location.origin}/invite/${token}`;
+    openWhatsApp(link, name || "", "");
+  };
+
+  const openWhatsApp = (link: string, name: string, phone: string) => {
+    const greeting = name ? `Hallo ${name},` : "Hallo,";
+    const text = `${greeting}\n\nhier ist dein persönlicher Einladungslink für die Stunden-App:\n${link}\n\nBitte öffne den Link und erstelle dein Konto. Danke!`;
+    const cleanPhone = phone.replace(/[^\d]/g, "");
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
+
   const deleteInvitation = async (id: string) => {
     await supabase.from("invitations").delete().eq("id", id);
     refresh();
   };
+
 
   // Employee detail view
   if (selectedEmployee) {
@@ -300,8 +320,21 @@ export default function AdminDashboard() {
                       Der Name hilft dir, den Mitarbeiter später in der Liste wiederzufinden.
                     </p>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">WhatsApp-Nummer (optional)</Label>
+                    <Input
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="z.B. 491701234567"
+                      inputMode="tel"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      Mit Ländervorwahl ohne "+" oder "00" (z.B. 49 für Deutschland). Leer lassen, um den Kontakt in WhatsApp selbst zu wählen.
+                    </p>
+                  </div>
                   <Button className="w-full" onClick={createInvitation} disabled={creating}>
-                    {creating ? "Erstelle…" : "Link erstellen & kopieren"}
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    {creating ? "Erstelle…" : "Erstellen & per WhatsApp senden"}
                   </Button>
                 </div>
               </DialogContent>
@@ -328,9 +361,14 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     {!used && !expired && (
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyLink(inv.token)}>
-                        <Copy className="w-3.5 h-3.5" />
-                      </Button>
+                      <>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => shareWhatsApp(inv.token, inv.note)} title="Per WhatsApp senden">
+                          <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyLink(inv.token)} title="Link kopieren">
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
                     )}
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteInvitation(inv.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
