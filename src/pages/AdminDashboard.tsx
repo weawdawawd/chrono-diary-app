@@ -43,6 +43,7 @@ export default function AdminDashboard() {
   // Invite form
   const [inviteOpen, setInviteOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
   const [creating, setCreating] = useState(false);
 
   // Filter for entries (month)
