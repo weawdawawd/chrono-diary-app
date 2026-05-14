@@ -105,7 +105,10 @@ export default function AdminDashboard() {
       const link = `${window.location.origin}/invite/${data.token}`;
       try { await navigator.clipboard.writeText(link); } catch {}
       toast.success("Einladungslink kopiert!", { description: link });
+      // WhatsApp öffnen
+      openWhatsApp(link, newName.trim(), newPhone.trim());
       setNewName("");
+      setNewPhone("");
       setInviteOpen(false);
       refresh();
     } catch (err: any) {
@@ -121,10 +124,26 @@ export default function AdminDashboard() {
     toast.success("Link kopiert!");
   };
 
+  const shareWhatsApp = (token: string, name: string | null) => {
+    const link = `${window.location.origin}/invite/${token}`;
+    openWhatsApp(link, name || "", "");
+  };
+
+  const openWhatsApp = (link: string, name: string, phone: string) => {
+    const greeting = name ? `Hallo ${name},` : "Hallo,";
+    const text = `${greeting}\n\nhier ist dein persönlicher Einladungslink für die Stunden-App:\n${link}\n\nBitte öffne den Link und erstelle dein Konto. Danke!`;
+    const cleanPhone = phone.replace(/[^\d]/g, "");
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
+
   const deleteInvitation = async (id: string) => {
     await supabase.from("invitations").delete().eq("id", id);
     refresh();
   };
+
 
   // Employee detail view
   if (selectedEmployee) {
