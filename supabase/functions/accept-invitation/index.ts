@@ -10,14 +10,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { token, email, password, displayName } = await req.json();
-    if (!token || !email || !password) {
+    const { token, email, password, displayName, action } = await req.json();
+    if (!token) {
       return new Response(JSON.stringify({ error: "Fehlende Felder" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (password.length < 6) {
-      return new Response(JSON.stringify({ error: "Passwort muss mindestens 6 Zeichen lang sein" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -42,6 +37,23 @@ Deno.serve(async (req) => {
     if (new Date(invite.expires_at) < new Date()) {
       return new Response(JSON.stringify({ error: "Einladung ist abgelaufen" }), {
         status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "check") {
+      return new Response(JSON.stringify({ ok: true, email: invite.email, displayName: invite.note }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!email || !password) {
+      return new Response(JSON.stringify({ error: "Fehlende Felder" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (password.length < 6) {
+      return new Response(JSON.stringify({ error: "Passwort muss mindestens 6 Zeichen lang sein" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

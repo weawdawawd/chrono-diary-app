@@ -21,18 +21,15 @@ export default function AcceptInvite() {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      const { data } = await supabase
-        .from("invitations")
-        .select("id, used_at, expires_at, email, note")
-        .eq("token", token)
-        .maybeSingle();
-      if (!data) setErrorMsg("Einladung ungültig");
-      else if (data.used_at) setErrorMsg("Einladung wurde bereits verwendet");
-      else if (new Date(data.expires_at) < new Date()) setErrorMsg("Einladung ist abgelaufen");
+      const { data, error } = await supabase.functions.invoke("accept-invitation", {
+        body: { token, action: "check" },
+      });
+      if (error) setErrorMsg("Einladung ungültig");
+      else if ((data as any)?.error) setErrorMsg((data as any).error);
       else {
         setValid(true);
-        if (data.email) setEmail(data.email);
-        if (data.note) setDisplayName(data.note);
+        if ((data as any)?.email) setEmail((data as any).email);
+        if ((data as any)?.displayName) setDisplayName((data as any).displayName);
       }
       setChecking(false);
     })();
