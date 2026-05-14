@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Briefcase, LogOut, ShieldCheck, Plus, Copy, Trash2, Users, Link2,
-  ChevronLeft, FileText, FileSpreadsheet, Eye, MapPin, Clock, Coffee,
+  ChevronLeft, FileText, FileSpreadsheet, Eye, MapPin, Clock, Coffee, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
