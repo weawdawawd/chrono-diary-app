@@ -11,7 +11,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -20,6 +21,9 @@ type Profile = { user_id: string; email: string | null; display_name: string | n
 type Shift = {
   id: string; employee_user_id: string; date: string;
   start_time: string; end_time: string; location: string;
+  requires_location: boolean;
+  location_consent_at: string | null;
+  location_consent_declined: boolean;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
 
