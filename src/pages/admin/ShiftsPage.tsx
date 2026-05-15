@@ -21,6 +21,7 @@ type Profile = { user_id: string; email: string | null; display_name: string | n
 type Shift = {
   id: string; employee_user_id: string; date: string;
   start_time: string; end_time: string; location: string;
+  note: string | null;
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
@@ -33,6 +34,8 @@ export default function ShiftsPage() {
   const [employeeIds, setEmployeeIds] = useState<Set<string>>(new Set());
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [latestLoc, setLatestLoc] = useState<Record<string, LocPing>>({});
+  const [savedLocations, setSavedLocations] = useState<string[]>([]);
+  const [savedActivities, setSavedActivities] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false);
   const [empId, setEmpId] = useState<string>("");
@@ -40,15 +43,18 @@ export default function ShiftsPage() {
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [location, setLocation] = useState("");
+  const [activity, setActivity] = useState("");
   const [requiresLocation, setRequiresLocation] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
-    const [{ data: p }, { data: r }, { data: s }, { data: l }] = await Promise.all([
+    const [{ data: p }, { data: r }, { data: s }, { data: l }, { data: gl }, { data: ga }] = await Promise.all([
       supabase.from("profiles").select("user_id, email, display_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("shifts").select("*").order("date", { ascending: false }).order("start_time"),
       supabase.from("shift_locations").select("shift_id, lat, lng, recorded_at").order("recorded_at", { ascending: false }),
+      supabase.from("global_locations").select("name").order("name"),
+      supabase.from("global_activities").select("name").order("name"),
     ]);
     setProfiles(p ?? []);
     const empIds = new Set<string>();
@@ -58,6 +64,8 @@ export default function ShiftsPage() {
     const map: Record<string, LocPing> = {};
     (l ?? []).forEach((row: any) => { if (!map[row.shift_id]) map[row.shift_id] = row; });
     setLatestLoc(map);
+    setSavedLocations((gl ?? []).map((x: any) => x.name));
+    setSavedActivities((ga ?? []).map((x: any) => x.name));
   };
 
   useEffect(() => { refresh(); }, []);
@@ -82,11 +90,12 @@ export default function ShiftsPage() {
         created_by: user.id,
         date, start_time: start, end_time: end,
         location: location.trim(),
+        note: activity.trim() || null,
         requires_location: requiresLocation,
       });
       if (error) throw error;
       toast.success("Schicht erstellt");
-      setOpen(false); setEmpId(""); setLocation(""); setRequiresLocation(false);
+      setOpen(false); setEmpId(""); setLocation(""); setActivity(""); setRequiresLocation(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -149,7 +158,27 @@ export default function ShiftsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Objekt / Ort *</Label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="z.B. Filiale Hauptstraße 12" />
+                <Input
+                  list="shift-locations"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="z.B. Filiale Hauptstraße 12"
+                />
+                <datalist id="shift-locations">
+                  {savedLocations.map((n) => <option key={n} value={n} />)}
+                </datalist>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Tätigkeit (optional)</Label>
+                <Input
+                  list="shift-activities"
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value)}
+                  placeholder="z.B. Maler-Arbeiten"
+                />
+                <datalist id="shift-activities">
+                  {savedActivities.map((n) => <option key={n} value={n} />)}
+                </datalist>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div className="space-y-0.5">
@@ -193,6 +222,9 @@ export default function ShiftsPage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
+                {s.note && (
+                  <div className="text-xs text-muted-foreground pl-5">↳ {s.note}</div>
+                )}
                 {s.requires_location ? (
                   s.location_consent_declined ? (
                     <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-medium">
