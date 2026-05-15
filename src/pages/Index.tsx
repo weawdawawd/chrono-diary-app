@@ -32,7 +32,7 @@ const Index = () => {
   const { isAdmin, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
 
   // Only run employee-only data hooks when we know the user is NOT an admin
-  const employeeId = !roleLoading && !isAdmin ? user?.id : undefined;
+  const employeeId = !roleLoading && !roleError && user && !isAdmin ? user.id : undefined;
   const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(employeeId);
   const savedLocations = useSavedLocations(employeeId);
   const { projects, addProject, deleteProject } = useProjects(employeeId);
