@@ -114,7 +114,7 @@ export default function LiveMap() {
 
   useEffect(() => {
     load();
-    const id = window.setInterval(load, 30_000);
+    const id = window.setInterval(load, 60_000);
     return () => window.clearInterval(id);
   }, []);
 
