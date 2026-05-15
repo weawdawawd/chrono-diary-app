@@ -40,6 +40,7 @@ export default function ShiftsPage() {
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [location, setLocation] = useState("");
+  const [requiresLocation, setRequiresLocation] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
