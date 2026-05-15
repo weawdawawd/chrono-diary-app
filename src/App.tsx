@@ -8,6 +8,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
+import DashboardPage from "./pages/admin/DashboardPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
 import InvitationsPage from "./pages/admin/InvitationsPage";
 import ShiftsPage from "./pages/admin/ShiftsPage";
@@ -25,7 +26,8 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/invite/:token" element={<AcceptInvite />} />
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<EmployeesPage />} />
+            <Route index element={<DashboardPage />} />
+            <Route path="employees" element={<EmployeesPage />} />
             <Route path="invitations" element={<InvitationsPage />} />
             <Route path="shifts" element={<ShiftsPage />} />
           </Route>
