@@ -7,10 +7,11 @@ import { Navigate } from "react-router-dom";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import { Button } from "@/components/ui/button";
 import { LogOut, Briefcase } from "lucide-react";
+import AdminAuthDebug from "@/components/AdminAuthDebug";
 
 export default function AdminLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole(user?.id);
+  const { isAdmin, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
 
   if (authLoading || roleLoading) {
     return (
@@ -22,7 +23,28 @@ export default function AdminLayout() {
     );
   }
   if (!user) return <Navigate to="/" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (roleError) {
+    return (
+      <AdminAuthDebug
+        email={user.email}
+        userId={user.id}
+        message="Die Admin-Rolle konnte nicht geladen werden. Bitte prüfe die Debug-Logs und lade die Rolle erneut."
+        code={roleError.code}
+        details={roleError.details || roleError.message}
+        onRetry={retryRole}
+      />
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <AdminAuthDebug
+        email={user.email}
+        userId={user.id}
+        message="Dieses Konto hat aktuell keine Admin-Rolle und darf den Admin-Bereich nicht öffnen."
+        details="Erwartet wird ein Eintrag in user_roles mit role = admin."
+      />
+    );
+  }
 
   return (
     <SidebarProvider>
