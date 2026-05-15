@@ -193,6 +193,25 @@ export default function ShiftsPage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
+                {s.requires_location ? (
+                  s.location_consent_declined ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-medium">
+                      <ShieldAlert className="w-3 h-3" /> Abgelehnt – Stunden zählen nicht
+                    </span>
+                  ) : s.location_consent_at ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-medium">
+                      <ShieldCheck className="w-3 h-3" /> Standort freigegeben
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 font-medium">
+                      <Shield className="w-3 h-3" /> Pflicht – Freigabe ausstehend
+                    </span>
+                  )
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                    Standort optional
+                  </span>
+                )}
                 {active && loc && (
                   <a
                     href={`https://www.google.com/maps?q=${loc.lat},${loc.lng}`}
