@@ -114,7 +114,7 @@ export default function LiveMap() {
 
   useEffect(() => {
     load();
-    const id = window.setInterval(load, 30_000);
+    const id = window.setInterval(load, 60_000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -129,7 +129,7 @@ export default function LiveMap() {
           <h2 className="font-display font-semibold text-sm">Live-Karte</h2>
         </div>
         <span className="text-[10px] text-muted-foreground">
-          {points.length} aktiv · auto-refresh 30s
+          {points.length} aktiv · auto-refresh 60s
         </span>
       </div>
       <div className="h-72 rounded-lg overflow-hidden border border-border">

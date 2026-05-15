@@ -6,13 +6,19 @@ export function useSavedActivities(userId: string | undefined) {
 
   const fetch = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase
-      .from("saved_activities")
-      .select("name")
-      .eq("user_id", userId)
-      .order("usage_count", { ascending: false })
-      .limit(50);
-    setActivities(data?.map((d) => d.name) || []);
+    const [own, global] = await Promise.all([
+      supabase
+        .from("saved_activities")
+        .select("name")
+        .eq("user_id", userId)
+        .order("usage_count", { ascending: false })
+        .limit(50),
+      supabase.from("global_activities").select("name").order("name"),
+    ]);
+    const merged = new Set<string>();
+    (global.data ?? []).forEach((d: any) => merged.add(d.name));
+    (own.data ?? []).forEach((d: any) => merged.add(d.name));
+    setActivities(Array.from(merged));
   }, [userId]);
 
   useEffect(() => {

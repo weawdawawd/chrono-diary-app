@@ -6,15 +6,20 @@ export function useSavedLocations(userId: string | undefined) {
 
   useEffect(() => {
     if (!userId) return;
-    supabase
-      .from("saved_locations")
-      .select("name")
-      .eq("user_id", userId)
-      .order("usage_count", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        setLocations(data?.map((l) => l.name) || []);
-      });
+    Promise.all([
+      supabase
+        .from("saved_locations")
+        .select("name")
+        .eq("user_id", userId)
+        .order("usage_count", { ascending: false })
+        .limit(20),
+      supabase.from("global_locations").select("name").order("name"),
+    ]).then(([own, global]) => {
+      const merged = new Set<string>();
+      (global.data ?? []).forEach((l: any) => merged.add(l.name));
+      (own.data ?? []).forEach((l: any) => merged.add(l.name));
+      setLocations(Array.from(merged));
+    });
   }, [userId]);
 
   return locations;
