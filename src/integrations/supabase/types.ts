@@ -199,7 +199,10 @@ export type Database = {
           end_time: string
           id: string
           location: string
+          location_consent_at: string | null
+          location_consent_declined: boolean
           note: string | null
+          requires_location: boolean
           start_time: string
         }
         Insert: {
@@ -210,7 +213,10 @@ export type Database = {
           end_time: string
           id?: string
           location: string
+          location_consent_at?: string | null
+          location_consent_declined?: boolean
           note?: string | null
+          requires_location?: boolean
           start_time: string
         }
         Update: {
@@ -221,7 +227,10 @@ export type Database = {
           end_time?: string
           id?: string
           location?: string
+          location_consent_at?: string | null
+          location_consent_declined?: boolean
           note?: string | null
+          requires_location?: boolean
           start_time?: string
         }
         Relationships: []
