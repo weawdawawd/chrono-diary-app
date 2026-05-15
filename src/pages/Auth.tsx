@@ -28,8 +28,13 @@ export default function AuthPage() {
     setLoading(true);
     try {
       if (mode === "login") {
+        console.info("[admin-auth] Login-Versuch", { email: email.trim().toLowerCase() });
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          console.error("[admin-auth] Login fehlgeschlagen", { email: email.trim().toLowerCase(), error });
+          throw error;
+        }
+        console.info("[admin-auth] Login erfolgreich, Session wird ausgewertet", { email: email.trim().toLowerCase() });
         toast.success("Willkommen zurück!");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
