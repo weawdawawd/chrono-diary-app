@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Link2, CalendarClock, ShieldCheck } from "lucide-react";
+import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Mitarbeiter", url: "/admin", icon: Users, end: true },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
+  { title: "Mitarbeiter", url: "/admin/employees", icon: Users },
   { title: "Einladungen", url: "/admin/invitations", icon: Link2 },
   { title: "Schichtplan", url: "/admin/shifts", icon: CalendarClock },
 ];
