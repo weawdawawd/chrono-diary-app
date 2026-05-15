@@ -8,20 +8,26 @@ export function useUserRole(userId: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     if (!userId) {
       setRole(null);
       setLoading(false);
       return;
     }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .then(({ data }) => {
-        const roles = (data ?? []).map((r) => r.role as AppRole);
-        setRole(roles.includes("admin") ? "admin" : "employee");
-        setLoading(false);
-      });
+    setLoading(true);
+    (async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (cancelled) return;
+      const roles = (data ?? []).map((r) => r.role as AppRole);
+      setRole(roles.includes("admin") ? "admin" : "employee");
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   return { role, isAdmin: role === "admin", loading };
