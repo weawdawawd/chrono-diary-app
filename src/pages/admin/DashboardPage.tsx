@@ -109,6 +109,8 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      <LiveMap />
+
       <Card className="p-4 space-y-2">
         <div className="flex items-center gap-1.5 text-sm font-medium">
           <Users className="w-4 h-4" /> Registrierte Mitarbeiter
