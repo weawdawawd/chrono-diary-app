@@ -24,10 +24,19 @@ type LivePoint = {
   recorded_at: string;
   label: string;
   location: string;
+  stale: boolean;
+};
+
+type WaitingShift = {
+  shift_id: string;
+  label: string;
+  location: string;
+  reason: string;
 };
 
 export default function LiveMap() {
   const [points, setPoints] = useState<LivePoint[]>([]);
+  const [waiting, setWaiting] = useState<WaitingShift[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -37,31 +46,33 @@ export default function LiveMap() {
     const [{ data: shifts }, { data: locs }, { data: profiles }] = await Promise.all([
       supabase
         .from("shifts")
-        .select("id, employee_user_id, location, start_time, end_time, date")
+        .select(
+          "id, employee_user_id, location, start_time, end_time, date, requires_location, location_consent_at, location_consent_declined"
+        )
         .eq("date", today)
         .lte("start_time", t)
         .gte("end_time", t),
       supabase
         .from("shift_locations")
         .select("shift_id, user_id, lat, lng, recorded_at")
-        .gte("recorded_at", new Date(Date.now() - 10 * 60_000).toISOString())
-        .order("recorded_at", { ascending: false }),
+        .order("recorded_at", { ascending: false })
+        .limit(500),
       supabase.from("profiles").select("user_id, email, display_name"),
     ]);
 
     const profileMap = new Map(
       (profiles ?? []).map((p: any) => [p.user_id, p.display_name || p.email || "?"])
     );
-    const activeShiftIds = new Set((shifts ?? []).map((s: any) => s.id));
     const shiftMap = new Map((shifts ?? []).map((s: any) => [s.id, s]));
 
     // pick latest ping per shift
     const latest = new Map<string, any>();
     (locs ?? []).forEach((row: any) => {
-      if (!activeShiftIds.has(row.shift_id)) return;
+      if (!shiftMap.has(row.shift_id)) return;
       if (!latest.has(row.shift_id)) latest.set(row.shift_id, row);
     });
 
+    const tenMinAgo = Date.now() - 10 * 60_000;
     const result: LivePoint[] = Array.from(latest.values()).map((row: any) => {
       const shift = shiftMap.get(row.shift_id) as any;
       return {
@@ -72,10 +83,32 @@ export default function LiveMap() {
         recorded_at: row.recorded_at,
         label: profileMap.get(row.user_id) || "Mitarbeiter",
         location: shift?.location || "",
+        stale: new Date(row.recorded_at).getTime() < tenMinAgo,
       };
     });
 
+    // Schichten mit Standort-Pflicht aber (noch) ohne Ping
+    const wait: WaitingShift[] = (shifts ?? [])
+      .filter((s: any) => !latest.has(s.id))
+      .map((s: any) => {
+        let reason = "Wartet auf Standort…";
+        if (s.requires_location) {
+          if (s.location_consent_declined) reason = "Mitarbeiter hat Standort abgelehnt";
+          else if (!s.location_consent_at) reason = "Freigabe noch nicht akzeptiert";
+          else reason = "Freigegeben – App des Mitarbeiters geschlossen?";
+        } else {
+          reason = "Schicht ohne Standort-Pflicht";
+        }
+        return {
+          shift_id: s.id,
+          label: profileMap.get(s.employee_user_id) || "Mitarbeiter",
+          location: s.location,
+          reason,
+        };
+      });
+
     setPoints(result);
+    setWaiting(wait);
     setLoading(false);
   };
 
@@ -110,12 +143,13 @@ export default function LiveMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {points.map((p) => (
-            <Marker key={p.shift_id} position={[p.lat, p.lng]}>
+            <Marker key={p.shift_id} position={[p.lat, p.lng]} opacity={p.stale ? 0.5 : 1}>
               <Popup>
                 <div className="text-xs space-y-0.5">
                   <div className="font-semibold">{p.label}</div>
                   <div className="text-muted-foreground">{p.location}</div>
-                  <div className="text-muted-foreground">
+                  <div className={p.stale ? "text-amber-500" : "text-muted-foreground"}>
+                    {p.stale ? "Zuletzt gesehen: " : ""}
                     {format(new Date(p.recorded_at), "HH:mm:ss")}
                   </div>
                 </div>
@@ -128,6 +162,22 @@ export default function LiveMap() {
         <p className="text-xs text-muted-foreground text-center">
           Aktuell keine aktiven Live-Standorte.
         </p>
+      )}
+      {waiting.length > 0 && (
+        <div className="space-y-1 pt-1 border-t border-border">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Wartende Schichten
+          </p>
+          {waiting.map((w) => (
+            <div key={w.shift_id} className="flex items-center justify-between text-[11px] p-1.5 rounded bg-muted/40">
+              <span className="truncate">
+                <span className="font-medium">{w.label}</span>
+                <span className="text-muted-foreground"> · {w.location}</span>
+              </span>
+              <span className="text-amber-500 ml-2 shrink-0">{w.reason}</span>
+            </div>
+          ))}
+        </div>
       )}
     </Card>
   );

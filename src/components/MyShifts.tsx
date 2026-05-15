@@ -69,7 +69,23 @@ export default function MyShifts({ userId }: { userId: string }) {
         })
         .eq("id", s.id);
       if (error) throw error;
-      toast.success("Standort-Freigabe aktiv");
+      // Sofort ersten Ping senden, damit Admin direkt eine Position sieht
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { error: insErr } = await supabase.from("shift_locations" as any).insert({
+            shift_id: s.id,
+            user_id: userId,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          });
+          if (insErr) console.error("[shift-location] initial ping insert failed", insErr);
+          else console.info("[shift-location] initial ping sent");
+        },
+        (err) => console.error("[shift-location] initial ping geolocation failed", err),
+        { enableHighAccuracy: true, timeout: 15_000 }
+      );
+      toast.success("Standort-Freigabe aktiv – Live-Übertragung läuft");
       fetchShifts();
     } catch (err: any) {
       // GeolocationPositionError: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
