@@ -151,6 +151,17 @@ export default function ShiftsPage() {
                 <Label className="text-xs">Objekt / Ort *</Label>
                 <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="z.B. Filiale Hauptstraße 12" />
               </div>
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div className="space-y-0.5">
+                  <Label className="text-xs flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" /> Standort-Pflicht
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Mitarbeiter muss Standort-Freigabe akzeptieren, sonst werden die Stunden nicht angerechnet.
+                  </p>
+                </div>
+                <Switch checked={requiresLocation} onCheckedChange={setRequiresLocation} />
+              </div>
               <Button className="w-full" onClick={create} disabled={creating}>
                 {creating ? "Erstelle…" : "Schicht erstellen"}
               </Button>
