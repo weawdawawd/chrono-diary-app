@@ -143,12 +143,13 @@ export default function LiveMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {points.map((p) => (
-            <Marker key={p.shift_id} position={[p.lat, p.lng]}>
+            <Marker key={p.shift_id} position={[p.lat, p.lng]} opacity={p.stale ? 0.5 : 1}>
               <Popup>
                 <div className="text-xs space-y-0.5">
                   <div className="font-semibold">{p.label}</div>
                   <div className="text-muted-foreground">{p.location}</div>
-                  <div className="text-muted-foreground">
+                  <div className={p.stale ? "text-amber-500" : "text-muted-foreground"}>
+                    {p.stale ? "Zuletzt gesehen: " : ""}
                     {format(new Date(p.recorded_at), "HH:mm:ss")}
                   </div>
                 </div>
@@ -161,6 +162,22 @@ export default function LiveMap() {
         <p className="text-xs text-muted-foreground text-center">
           Aktuell keine aktiven Live-Standorte.
         </p>
+      )}
+      {waiting.length > 0 && (
+        <div className="space-y-1 pt-1 border-t border-border">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Wartende Schichten
+          </p>
+          {waiting.map((w) => (
+            <div key={w.shift_id} className="flex items-center justify-between text-[11px] p-1.5 rounded bg-muted/40">
+              <span className="truncate">
+                <span className="font-medium">{w.label}</span>
+                <span className="text-muted-foreground"> · {w.location}</span>
+              </span>
+              <span className="text-amber-500 ml-2 shrink-0">{w.reason}</span>
+            </div>
+          ))}
+        </div>
       )}
     </Card>
   );
