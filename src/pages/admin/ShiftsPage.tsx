@@ -82,10 +82,11 @@ export default function ShiftsPage() {
         created_by: user.id,
         date, start_time: start, end_time: end,
         location: location.trim(),
+        requires_location: requiresLocation,
       });
       if (error) throw error;
       toast.success("Schicht erstellt");
-      setOpen(false); setEmpId(""); setLocation("");
+      setOpen(false); setEmpId(""); setLocation(""); setRequiresLocation(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
