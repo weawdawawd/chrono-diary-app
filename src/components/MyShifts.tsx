@@ -54,7 +54,7 @@ export default function MyShifts({ userId }: { userId: string }) {
     try {
       // Trigger native browser permission prompt up-front
       await new Promise<void>((resolve, reject) => {
-        if (!("geolocation" in navigator)) return reject(new Error("Kein GPS verfügbar"));
+        if (!("geolocation" in navigator)) return reject(new Error("NO_GPS"));
         navigator.geolocation.getCurrentPosition(
           () => resolve(),
           (err) => reject(err),
@@ -72,7 +72,20 @@ export default function MyShifts({ userId }: { userId: string }) {
       toast.success("Standort-Freigabe aktiv");
       fetchShifts();
     } catch (err: any) {
-      toast.error(err.message || "Standort-Zugriff verweigert");
+      // GeolocationPositionError: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+      if (err?.code === 1 || /denied/i.test(err?.message ?? "")) {
+        toast.error("Standort blockiert", {
+          description:
+            "Bitte erlaube den Standortzugriff in den Browser-Einstellungen für diese Seite (Schloss-Symbol in der Adressleiste → Standort → Erlauben) und versuche es erneut.",
+          duration: 8000,
+        });
+      } else if (err?.code === 3) {
+        toast.error("GPS-Timeout – bitte erneut versuchen");
+      } else if (err?.message === "NO_GPS") {
+        toast.error("Dieses Gerät unterstützt kein GPS");
+      } else {
+        toast.error(err?.message || "Standort-Zugriff fehlgeschlagen");
+      }
     } finally {
       setBusy(null);
     }
