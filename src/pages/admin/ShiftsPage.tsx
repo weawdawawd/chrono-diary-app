@@ -34,6 +34,8 @@ export default function ShiftsPage() {
   const [employeeIds, setEmployeeIds] = useState<Set<string>>(new Set());
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [latestLoc, setLatestLoc] = useState<Record<string, LocPing>>({});
+  const [savedLocations, setSavedLocations] = useState<string[]>([]);
+  const [savedActivities, setSavedActivities] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false);
   const [empId, setEmpId] = useState<string>("");
@@ -41,15 +43,18 @@ export default function ShiftsPage() {
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [location, setLocation] = useState("");
+  const [activity, setActivity] = useState("");
   const [requiresLocation, setRequiresLocation] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
-    const [{ data: p }, { data: r }, { data: s }, { data: l }] = await Promise.all([
+    const [{ data: p }, { data: r }, { data: s }, { data: l }, { data: gl }, { data: ga }] = await Promise.all([
       supabase.from("profiles").select("user_id, email, display_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("shifts").select("*").order("date", { ascending: false }).order("start_time"),
       supabase.from("shift_locations").select("shift_id, lat, lng, recorded_at").order("recorded_at", { ascending: false }),
+      supabase.from("global_locations").select("name").order("name"),
+      supabase.from("global_activities").select("name").order("name"),
     ]);
     setProfiles(p ?? []);
     const empIds = new Set<string>();
@@ -59,6 +64,8 @@ export default function ShiftsPage() {
     const map: Record<string, LocPing> = {};
     (l ?? []).forEach((row: any) => { if (!map[row.shift_id]) map[row.shift_id] = row; });
     setLatestLoc(map);
+    setSavedLocations((gl ?? []).map((x: any) => x.name));
+    setSavedActivities((ga ?? []).map((x: any) => x.name));
   };
 
   useEffect(() => { refresh(); }, []);
