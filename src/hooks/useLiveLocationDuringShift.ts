@@ -39,15 +39,17 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
     const sendPing = (shiftId: string) => {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          await supabase.from("shift_locations" as any).insert({
+          const { error } = await supabase.from("shift_locations" as any).insert({
             shift_id: shiftId,
             user_id: userId,
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             accuracy: pos.coords.accuracy,
           });
+          if (error) console.error("[shift-location] ping insert failed", error);
+          else console.info("[shift-location] ping sent", { shiftId, lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
-        () => {},
+        (err) => console.error("[shift-location] ping geolocation failed", err),
         { enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000 }
       );
     };
