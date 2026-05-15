@@ -34,6 +34,7 @@ const Index = () => {
   const { projects, addProject, deleteProject } = useProjects(user?.id);
   const { settings, upsertSettings } = useUserSettings(user?.id);
   const { activities: savedActivities, upsertActivity } = useSavedActivities(user?.id);
+  useLiveLocationDuringShift(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -105,6 +106,8 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        {user && <MyShifts userId={user.id} />}
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
         </motion.div>
