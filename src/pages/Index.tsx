@@ -16,13 +16,15 @@ import MonthFilter from "@/components/MonthFilter";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
-import AdminDashboard from "@/pages/AdminDashboard";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import MyShifts from "@/components/MyShifts";
+import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -71,7 +73,7 @@ const Index = () => {
   }
 
   if (isAdmin) {
-    return <AdminDashboard />;
+    return <Navigate to="/admin" replace />;
   }
 
   return (
