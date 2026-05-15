@@ -21,6 +21,7 @@ type Profile = { user_id: string; email: string | null; display_name: string | n
 type Shift = {
   id: string; employee_user_id: string; date: string;
   start_time: string; end_time: string; location: string;
+  note: string | null;
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
