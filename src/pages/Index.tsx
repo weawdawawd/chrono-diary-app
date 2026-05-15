@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useWorkEntries } from "@/hooks/useWorkEntries";
@@ -16,7 +16,7 @@ import MonthFilter from "@/components/MonthFilter";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
@@ -29,12 +29,23 @@ import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole(user?.id);
-  const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(user?.id);
-  const savedLocations = useSavedLocations(user?.id);
-  const { projects, addProject, deleteProject } = useProjects(user?.id);
-  const { settings, upsertSettings } = useUserSettings(user?.id);
-  const { activities: savedActivities, upsertActivity } = useSavedActivities(user?.id);
-  useLiveLocationDuringShift(user?.id);
+  const navigate = useNavigate();
+
+  // Redirect admins to admin dashboard via effect (avoids render-time Navigate races)
+  useEffect(() => {
+    if (!authLoading && !roleLoading && user && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [authLoading, roleLoading, user, isAdmin, navigate]);
+
+  // Only run employee-only data hooks when we know the user is NOT an admin
+  const employeeId = !roleLoading && !isAdmin ? user?.id : undefined;
+  const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(employeeId);
+  const savedLocations = useSavedLocations(employeeId);
+  const { projects, addProject, deleteProject } = useProjects(employeeId);
+  const { settings, upsertSettings } = useUserSettings(employeeId);
+  const { activities: savedActivities, upsertActivity } = useSavedActivities(employeeId);
+  useLiveLocationDuringShift(employeeId);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +67,7 @@ const Index = () => {
     return result;
   }, [entries, filterMonth, searchQuery]);
 
-  if (authLoading || roleLoading) {
+  if (authLoading || roleLoading || (user && isAdmin)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -71,10 +82,6 @@ const Index = () => {
 
   if (!user) {
     return <AuthPage />;
-  }
-
-  if (isAdmin) {
-    return <Navigate to="/admin" replace />;
   }
 
   return (
@@ -106,15 +113,8 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
-        {user && <MyShifts userId={user.id} />}
+        <MyShifts userId={user.id} />
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
-        </motion.div>
-
-        {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
-        {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
-        {entries.length > 0 && <WorkCalendar entries={entries} />}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
         </motion.div>
