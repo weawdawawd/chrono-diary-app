@@ -158,7 +158,27 @@ export default function ShiftsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Objekt / Ort *</Label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="z.B. Filiale Hauptstraße 12" />
+                <Input
+                  list="shift-locations"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="z.B. Filiale Hauptstraße 12"
+                />
+                <datalist id="shift-locations">
+                  {savedLocations.map((n) => <option key={n} value={n} />)}
+                </datalist>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Tätigkeit (optional)</Label>
+                <Input
+                  list="shift-activities"
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value)}
+                  placeholder="z.B. Maler-Arbeiten"
+                />
+                <datalist id="shift-activities">
+                  {savedActivities.map((n) => <option key={n} value={n} />)}
+                </datalist>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div className="space-y-0.5">
