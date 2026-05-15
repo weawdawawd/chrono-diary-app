@@ -7,6 +7,10 @@ import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./pages/admin/AdminLayout";
+import EmployeesPage from "./pages/admin/EmployeesPage";
+import InvitationsPage from "./pages/admin/InvitationsPage";
+import ShiftsPage from "./pages/admin/ShiftsPage";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +24,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/invite/:token" element={<AcceptInvite />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<EmployeesPage />} />
+            <Route path="invitations" element={<InvitationsPage />} />
+            <Route path="shifts" element={<ShiftsPage />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
