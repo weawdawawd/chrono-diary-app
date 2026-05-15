@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Users, Link2, CalendarClock, ShieldCheck, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
+import LiveMap from "@/components/admin/LiveMap";
 
 type Profile = { user_id: string; email: string | null; display_name: string | null };
 
