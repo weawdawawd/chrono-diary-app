@@ -222,6 +222,9 @@ export default function ShiftsPage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
+                {s.note && (
+                  <div className="text-xs text-muted-foreground pl-5">↳ {s.note}</div>
+                )}
                 {s.requires_location ? (
                   s.location_consent_declined ? (
                     <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-medium">
