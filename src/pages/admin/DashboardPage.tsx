@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Users, Link2, CalendarClock, ShieldCheck, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
+import LiveMap from "@/components/admin/LiveMap";
 
 type Profile = { user_id: string; email: string | null; display_name: string | null };
 
@@ -107,6 +108,8 @@ export default function DashboardPage() {
           </Card>
         </Link>
       </div>
+
+      <LiveMap />
 
       <Card className="p-4 space-y-2">
         <div className="flex items-center gap-1.5 text-sm font-medium">

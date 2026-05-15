@@ -11,7 +11,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -20,6 +21,9 @@ type Profile = { user_id: string; email: string | null; display_name: string | n
 type Shift = {
   id: string; employee_user_id: string; date: string;
   start_time: string; end_time: string; location: string;
+  requires_location: boolean;
+  location_consent_at: string | null;
+  location_consent_declined: boolean;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
 
@@ -36,6 +40,7 @@ export default function ShiftsPage() {
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [location, setLocation] = useState("");
+  const [requiresLocation, setRequiresLocation] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
@@ -77,10 +82,11 @@ export default function ShiftsPage() {
         created_by: user.id,
         date, start_time: start, end_time: end,
         location: location.trim(),
+        requires_location: requiresLocation,
       });
       if (error) throw error;
       toast.success("Schicht erstellt");
-      setOpen(false); setEmpId(""); setLocation("");
+      setOpen(false); setEmpId(""); setLocation(""); setRequiresLocation(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -145,6 +151,17 @@ export default function ShiftsPage() {
                 <Label className="text-xs">Objekt / Ort *</Label>
                 <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="z.B. Filiale Hauptstraße 12" />
               </div>
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div className="space-y-0.5">
+                  <Label className="text-xs flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" /> Standort-Pflicht
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Mitarbeiter muss Standort-Freigabe akzeptieren, sonst werden die Stunden nicht angerechnet.
+                  </p>
+                </div>
+                <Switch checked={requiresLocation} onCheckedChange={setRequiresLocation} />
+              </div>
               <Button className="w-full" onClick={create} disabled={creating}>
                 {creating ? "Erstelle…" : "Schicht erstellen"}
               </Button>
@@ -176,6 +193,25 @@ export default function ShiftsPage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
+                {s.requires_location ? (
+                  s.location_consent_declined ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-medium">
+                      <ShieldAlert className="w-3 h-3" /> Abgelehnt – Stunden zählen nicht
+                    </span>
+                  ) : s.location_consent_at ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-medium">
+                      <ShieldCheck className="w-3 h-3" /> Standort freigegeben
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 font-medium">
+                      <Shield className="w-3 h-3" /> Pflicht – Freigabe ausstehend
+                    </span>
+                  )
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                    Standort optional
+                  </span>
+                )}
                 {active && loc && (
                   <a
                     href={`https://www.google.com/maps?q=${loc.lat},${loc.lng}`}
