@@ -16,13 +16,15 @@ import MonthFilter from "@/components/MonthFilter";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
-import AdminDashboard from "@/pages/AdminDashboard";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Briefcase, LogOut } from "lucide-react";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import MyShifts from "@/components/MyShifts";
+import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -32,6 +34,7 @@ const Index = () => {
   const { projects, addProject, deleteProject } = useProjects(user?.id);
   const { settings, upsertSettings } = useUserSettings(user?.id);
   const { activities: savedActivities, upsertActivity } = useSavedActivities(user?.id);
+  useLiveLocationDuringShift(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +74,7 @@ const Index = () => {
   }
 
   if (isAdmin) {
-    return <AdminDashboard />;
+    return <Navigate to="/admin" replace />;
   }
 
   return (
@@ -103,6 +106,8 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        {user && <MyShifts userId={user.id} />}
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
         </motion.div>

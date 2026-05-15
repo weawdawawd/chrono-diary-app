@@ -152,6 +152,80 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_locations: {
+        Row: {
+          accuracy: number | null
+          id: string
+          lat: number
+          lng: number
+          recorded_at: string
+          shift_id: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          id?: string
+          lat: number
+          lng: number
+          recorded_at?: string
+          shift_id: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          id?: string
+          lat?: number
+          lng?: number
+          recorded_at?: string
+          shift_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_locations_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          employee_user_id: string
+          end_time: string
+          id: string
+          location: string
+          note: string | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          employee_user_id: string
+          end_time: string
+          id?: string
+          location: string
+          note?: string | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          employee_user_id?: string
+          end_time?: string
+          id?: string
+          location?: string
+          note?: string | null
+          start_time?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
