@@ -61,11 +61,15 @@ export default function DashboardPage() {
   const employees = profiles.filter((p) => roles[p.user_id] === "employee");
 
   const stats = [
-    { to: "/admin/employees", icon: Users, value: employees.length, label: "Mitarbeiter", tint: "from-primary/20 to-primary/5" },
-    { to: "/admin/invitations", icon: Link2, value: invitationsCount, label: "Offene Einladungen", tint: "from-accent/20 to-accent/5" },
-    { to: "/admin/shifts", icon: CalendarClock, value: shiftsToday, label: "Schichten heute", tint: "from-sky-500/20 to-sky-500/5" },
-    { to: "/admin/shifts", icon: Activity, value: activeNow, label: "Live aktiv", tint: "from-emerald-500/20 to-emerald-500/5", live: activeNow > 0 },
+    { to: "/admin/employees" as const, icon: Users, value: employees.length, label: "Mitarbeiter", tint: "from-primary/20 to-primary/5" },
+    { to: "/admin/invitations" as const, icon: Link2, value: invitationsCount, label: "Offene Einladungen", tint: "from-accent/20 to-accent/5" },
+    { to: "/admin/shifts" as const, icon: CalendarClock, value: shiftsToday, label: "Schichten heute", tint: "from-sky-500/20 to-sky-500/5" },
+    { to: null, icon: Activity, value: activeNow, label: "Live aktiv", tint: "from-emerald-500/20 to-emerald-500/5", live: activeNow > 0, scrollToMap: true },
   ];
+
+  const scrollToMap = () => {
+    mapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
@@ -97,9 +101,9 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        {stats.map((s, i) => (
-          <Link key={i} to={s.to}>
-            <Card className={`relative overflow-hidden p-4 hover:border-primary/50 hover:-translate-y-0.5 transition-all bg-gradient-to-br ${s.tint}`}>
+        {stats.map((s, i) => {
+          const inner = (
+            <Card className={`relative overflow-hidden p-4 hover:border-primary/50 hover:-translate-y-0.5 transition-all bg-gradient-to-br ${s.tint} cursor-pointer`}>
               <div className="flex items-start justify-between">
                 <div className="w-9 h-9 rounded-lg bg-background/60 backdrop-blur flex items-center justify-center">
                   <s.icon className="w-4 h-4 text-primary" />
@@ -114,11 +118,23 @@ export default function DashboardPage() {
               <p className="text-3xl font-display font-bold mt-3 leading-none">{s.value}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{s.label}</p>
             </Card>
-          </Link>
-        ))}
+          );
+          if (s.scrollToMap) {
+            return (
+              <button key={i} type="button" onClick={scrollToMap} className="text-left">
+                {inner}
+              </button>
+            );
+          }
+          return (
+            <Link key={i} to={s.to!}>{inner}</Link>
+          );
+        })}
       </div>
 
-      <LiveMap />
+      <div ref={mapRef} className="scroll-mt-4">
+        <LiveMap />
+      </div>
 
       <Card className="p-4 space-y-2">
         <div className="flex items-center gap-1.5 text-sm font-medium">
