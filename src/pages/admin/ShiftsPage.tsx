@@ -18,13 +18,21 @@ import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 
 type Profile = { user_id: string; email: string | null; display_name: string | null };
+type GlobalLocation = {
+  id: string; name: string; address: string | null;
+  lat: number | null; lng: number | null; geofence_radius_m: number;
+};
 type Shift = {
   id: string; employee_user_id: string; date: string;
   start_time: string; end_time: string; location: string;
+  address: string | null;
+  lat: number | null; lng: number | null; geofence_radius_m: number | null;
   note: string | null;
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
+  start_location_lat: number | null; start_location_lng: number | null;
+  end_location_lat: number | null; end_location_lng: number | null;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
 
@@ -34,7 +42,7 @@ export default function ShiftsPage() {
   const [employeeIds, setEmployeeIds] = useState<Set<string>>(new Set());
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [latestLoc, setLatestLoc] = useState<Record<string, LocPing>>({});
-  const [savedLocations, setSavedLocations] = useState<string[]>([]);
+  const [globalLocations, setGlobalLocations] = useState<GlobalLocation[]>([]);
   const [savedActivities, setSavedActivities] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false);
@@ -43,6 +51,10 @@ export default function ShiftsPage() {
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
   const [location, setLocation] = useState("");
+  const [address, setAddress] = useState("");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
+  const [radius, setRadius] = useState<number | null>(null);
   const [activity, setActivity] = useState("");
   const [requiresLocation, setRequiresLocation] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -53,7 +65,7 @@ export default function ShiftsPage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("shifts").select("*").order("date", { ascending: false }).order("start_time"),
       supabase.from("shift_locations").select("shift_id, lat, lng, recorded_at").order("recorded_at", { ascending: false }),
-      supabase.from("global_locations").select("name").order("name"),
+      supabase.from("global_locations").select("id, name, address, lat, lng, geofence_radius_m").order("name"),
       supabase.from("global_activities").select("name").order("name"),
     ]);
     setProfiles(p ?? []);
@@ -64,7 +76,7 @@ export default function ShiftsPage() {
     const map: Record<string, LocPing> = {};
     (l ?? []).forEach((row: any) => { if (!map[row.shift_id]) map[row.shift_id] = row; });
     setLatestLoc(map);
-    setSavedLocations((gl ?? []).map((x: any) => x.name));
+    setGlobalLocations((gl ?? []) as GlobalLocation[]);
     setSavedActivities((ga ?? []).map((x: any) => x.name));
   };
 
@@ -79,6 +91,18 @@ export default function ShiftsPage() {
     return p?.display_name || p?.email || uid.slice(0, 8);
   };
 
+  // Wenn Name eines bekannten Objekts gewählt wird → Adresse/Koords/Radius übernehmen
+  const onLocationChange = (val: string) => {
+    setLocation(val);
+    const match = globalLocations.find((g) => g.name.toLowerCase() === val.toLowerCase());
+    if (match) {
+      setAddress(match.address ?? "");
+      setLat(match.lat);
+      setLng(match.lng);
+      setRadius(match.geofence_radius_m);
+    }
+  };
+
   const create = async () => {
     if (!user) return;
     if (!empId || !location.trim()) { toast.error("Mitarbeiter und Objekt erforderlich"); return; }
@@ -90,12 +114,17 @@ export default function ShiftsPage() {
         created_by: user.id,
         date, start_time: start, end_time: end,
         location: location.trim(),
+        address: address.trim() || null,
+        lat, lng,
+        geofence_radius_m: radius,
         note: activity.trim() || null,
         requires_location: requiresLocation,
       });
       if (error) throw error;
       toast.success("Schicht erstellt");
-      setOpen(false); setEmpId(""); setLocation(""); setActivity(""); setRequiresLocation(false);
+      setOpen(false);
+      setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
+      setRadius(null); setActivity(""); setRequiresLocation(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -161,12 +190,26 @@ export default function ShiftsPage() {
                 <Input
                   list="shift-locations"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) => onLocationChange(e.target.value)}
                   placeholder="z.B. Filiale Hauptstraße 12"
                 />
                 <datalist id="shift-locations">
-                  {savedLocations.map((n) => <option key={n} value={n} />)}
+                  {globalLocations.map((g) => <option key={g.id} value={g.name} />)}
                 </datalist>
+                {address && (
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-2.5 h-2.5" /> {address}
+                    {lat != null && lng != null && ` · ${radius ?? 0} m Geofence`}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Adresse (optional, wird dem Mitarbeiter angezeigt)</Label>
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Straße, PLZ, Ort"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Tätigkeit (optional)</Label>
@@ -222,6 +265,9 @@ export default function ShiftsPage() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
+                {s.address && (
+                  <p className="text-[11px] text-muted-foreground pl-5">{s.address}</p>
+                )}
                 {s.note && (
                   <div className="text-xs text-muted-foreground pl-5">↳ {s.note}</div>
                 )}
@@ -243,6 +289,28 @@ export default function ShiftsPage() {
                   <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
                     Standort optional
                   </span>
+                )}
+                {(s.start_location_lat || s.end_location_lat) && (
+                  <div className="flex gap-3 text-[10px] text-muted-foreground pt-1">
+                    {s.start_location_lat != null && s.start_location_lng != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${s.start_location_lat},${s.start_location_lng}`}
+                        target="_blank" rel="noreferrer"
+                        className="hover:underline text-emerald-600"
+                      >
+                        🟢 Start-Standort
+                      </a>
+                    )}
+                    {s.end_location_lat != null && s.end_location_lng != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${s.end_location_lat},${s.end_location_lng}`}
+                        target="_blank" rel="noreferrer"
+                        className="hover:underline text-destructive"
+                      >
+                        🔴 End-Standort
+                      </a>
+                    )}
+                  </div>
                 )}
                 {active && loc && (
                   <a
