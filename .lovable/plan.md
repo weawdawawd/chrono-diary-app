@@ -1,52 +1,80 @@
-# Plan: Standort-Pflicht für Schichten + Live-Karte
-
 ## Ziel
-- Admin kann beim Erstellen einer Schicht festlegen, ob Standort erforderlich ist
-- Mitarbeiter muss die Standort-Freigabe vor Schichtbeginn akzeptieren
-- Bei aktiver Schicht mit Standort-Pflicht → automatische Live-Übertragung im Hintergrund
-- Wenn Mitarbeiter Standort nicht freigibt bei Pflicht-Schicht → Stunden werden NICHT in der Auswertung gezählt
-- Admin-Dashboard zeigt Live-Karte mit allen aktuell aktiven Mitarbeiterstandorten
 
-## Datenbank-Änderungen
+Vier neue Features für das Schicht- & Standortsystem:
 
-**Tabelle `shifts`:**
-- Neue Spalte `requires_location boolean NOT NULL DEFAULT false`
-- Neue Spalte `location_consent_at timestamptz` (wann Mitarbeiter zugestimmt hat)
-- Neue Spalte `location_consent_declined boolean DEFAULT false`
+1. **Geofence pro Objekt** — Admin zeichnet auf der Karte einen Radius/Polygon um jedes Objekt
+2. **Adresse in Schicht** — Bei Schicht-Einteilung wird auch die Adresse des Objekts mitgeteilt
+3. **Start- & End-Standort** — Beim Akzeptieren Start-Position speichern, beim Schicht-Ende automatisch End-Position speichern (live-Tracking bleibt wie bisher)
+4. **SOS-Notruf** — Mitarbeiter löst Notruf aus → Admin + alle Kollegen mit aktiver Schicht im 1 km Radius werden alarmiert
 
-**RLS-Update:**
-- Mitarbeiter darf nur `location_consent_at` / `location_consent_declined` der eigenen Schichten updaten
-- `shift_locations` insert-Policy bleibt: nur während aktiver Schicht
-- Stunden-Berechnung: shifts mit `requires_location = true` UND `location_consent_at IS NULL` werden bei Auswertung markiert/ausgeschlossen
+---
 
-## UI-Änderungen
+## 1. Datenbank-Änderungen (Migration)
 
-### Admin
-1. **`ShiftsPage.tsx`** – Neue Schicht: Switch „Standort-Pflicht" (an/aus)
-2. **`DashboardPage.tsx`** – Neue Sektion „Live-Karte":
-   - Leaflet (OpenStreetMap, kostenlos, ohne API-Key)
-   - Marker für jeden aktuell aktiven Mitarbeiter (letzter Ping aus `shift_locations`)
-   - Auto-Refresh alle 30 s
-3. Schichtliste: Badge „📍 Pflicht" / „Optional" + Status (akzeptiert / abgelehnt / ausstehend)
+**`global_locations` erweitern:**
+- `address` text — Adresse des Objekts
+- `lat`, `lng` double precision — Koordinaten (für Geofence-Mittelpunkt)
+- `geofence_radius_m` integer default 200 — Radius in Metern (0 = kein Geofence)
 
-### Mitarbeiter
-1. **`MyShifts.tsx`** – Bei Schichten mit `requires_location`:
-   - Vor Schichtstart: Banner „Standort-Freigabe erforderlich" mit „Akzeptieren" / „Ablehnen"
-   - Akzeptieren → `getCurrentPosition()` Permission-Prompt + `location_consent_at = now()`
-   - Ablehnen → `location_consent_declined = true` + Warnung „Stunden werden nicht angerechnet"
-2. **`useLiveLocationDuringShift.ts`** – Nur Pings senden wenn `location_consent_at` gesetzt UND `requires_location` true (oder freiwillig bei optional)
-3. Hinweis bei aktiver Schicht: „Live-Standort wird gesendet"
+**`shifts` erweitern:**
+- `address` text — Adresse-Snapshot beim Erstellen
+- `lat`, `lng` double precision — Objekt-Koordinaten (für Geofence-Check & SOS-Radius)
+- `geofence_radius_m` integer — Geofence-Snapshot
+- `start_location_lat/lng` + `start_location_at` — Erster Standort beim Akzeptieren
+- `end_location_lat/lng` + `end_location_at` — Letzter Standort nach Schichtende
 
-## Technische Details
+**Neue Tabelle `sos_alerts`:**
+- `user_id`, `shift_id` (nullable), `lat`, `lng`, `message` text, `resolved_at`, `created_at`
+- RLS: Mitarbeiter inserten eigene; Admins sehen alle; Mitarbeiter sehen Alerts im 1 km Radius über RPC
 
-- **Karte:** `leaflet` + `react-leaflet` (npm), Tiles von OpenStreetMap (frei)
-- **Live-Ping-Intervall:** 60 s (statt 120 s) während aktiver Pflicht-Schicht
-- **Stunden-Berechnung:** Helper `isShiftCounted(shift)` → false wenn `requires_location && !location_consent_at`
-- **Hintergrund-Tracking:** Browser kann nur tracken wenn Tab offen. Hinweis im UI „App geöffnet lassen" – echtes Background-Tracking benötigt Capacitor (ist bereits im Projekt → kann später Native-Plugin nutzen)
+**Neue RPC-Funktion `get_nearby_active_sos(user_lat, user_lng)`:**
+- Liefert aktive (nicht resolved) SOS-Alarme innerhalb 1 km für eingeloggte Mitarbeiter mit aktiver Schicht.
 
-## Dateien
-- Migration: shifts-Spalten + RLS-Update
-- Edit: `ShiftsPage.tsx`, `DashboardPage.tsx`, `MyShifts.tsx`, `useLiveLocationDuringShift.ts`
-- Neu: `src/components/admin/LiveMap.tsx`
-- Neu: `src/lib/shiftHours.ts` (Helper)
-- Install: `leaflet`, `react-leaflet`, `@types/leaflet`
+---
+
+## 2. UI-Änderungen
+
+**`CatalogPage` (Objekte verwalten):**
+- Neue Felder im Formular: Adresse, Koordinaten (mit „Adresse geocoden"-Button via Google Maps Connector), Geofence-Radius-Slider
+- Mini-Karte mit Marker + Kreis zum Visualisieren / Anpassen per Klick
+
+**`ShiftsPage`:**
+- Beim Auswählen eines Objekts aus dem Katalog werden Adresse + Koordinaten + Radius automatisch in die Schicht übernommen
+- Anzeige der Adresse in der Schichtliste
+
+**`MyShifts` (Mitarbeiter):**
+- Adresse wird angezeigt + „Route in Maps öffnen"-Link
+- Bei Akzeptieren: erste Position wird zusätzlich als `start_location_*` gespeichert
+- SOS-Button (groß, rot) — sichtbar während aktiver Schicht
+- Beim Schicht-Ende (Hook erkennt Übergang): letzter bekannter Standort wird als `end_location_*` gespeichert
+
+**`LiveMap` (Admin):**
+- Geofence-Kreise um jedes Objekt mit aktiver Schicht
+- Marker für Start-/End-Positionen pro Schicht
+- SOS-Alarme als pulsierender roter Marker mit Popup + „Erledigt"-Button
+
+**Neuer SOS-Banner global (Mitarbeiter):**
+- Wenn `get_nearby_active_sos` einen Alarm in 1 km liefert → Vollbild-Alert mit Position, Name, „Anrufen"/„Route"-Buttons
+
+---
+
+## 3. Technische Details
+
+- **Geocoding**: Google Maps Platform Connector über Gateway (Geocoding API) — Admin gibt Adresse ein → Koordinaten werden ermittelt
+- **Distanzberechnung**: Haversine direkt in SQL (RPC) für SOS-Radius
+- **SOS-Trigger**: Edge Function `trigger-sos` — fügt Alert ein, könnte später Push/E-Mail an Admin senden
+- **End-Standort**: Im `useLiveLocationDuringShift` Hook erkennen wenn `activeShiftIdRef` von ID zu null wechselt → letzten `lastPosRef` als End-Position speichern
+- **Real-time SOS**: Supabase Realtime auf `sos_alerts` für sofortige Benachrichtigung
+
+---
+
+## Reihenfolge der Umsetzung
+
+1. Migration (Schema + RPC + RLS)
+2. Google Maps Connector aktivieren (falls noch nicht)
+3. CatalogPage mit Geofence-Editor
+4. ShiftsPage mit Adress-Übernahme
+5. MyShifts mit Adresse, Start-Standort, SOS-Button
+6. End-Standort-Speicherung im Hook
+7. LiveMap mit Geofence-Kreisen + SOS-Anzeige
+8. Globaler SOS-Banner für Mitarbeiter im Umkreis
