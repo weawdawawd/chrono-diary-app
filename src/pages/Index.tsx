@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import MyShifts from "@/components/MyShifts";
+import MyShiftsCalendar from "@/components/MyShiftsCalendar";
 import SosButton from "@/components/SosButton";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
@@ -127,6 +128,7 @@ const Index = () => {
           <SosButton userId={user.id} />
         </div>
         <MyShifts userId={user.id} />
+        <MyShiftsCalendar userId={user.id} />
 
 
 

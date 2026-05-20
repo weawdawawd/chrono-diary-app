@@ -12,10 +12,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle, LayoutList, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ShiftMiniCalendar from "@/components/ShiftMiniCalendar";
 
 type Profile = { user_id: string; email: string | null; display_name: string | null };
 type GlobalLocation = {
@@ -260,21 +262,113 @@ export default function ShiftsPage() {
       {shifts.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Bestellungen.</Card>
       ) : (
-        <div className="space-y-2">
-          {shifts.map((s) => {
-            const active = isActive(s);
-            const loc = latestLoc[s.id];
-            return (
-              <Card
-                key={s.id}
-                className={`p-3 space-y-1.5 border-l-4 ${
-                  s.assignment_status === "accepted"
-                    ? "border-l-emerald-500 bg-emerald-500/5"
-                    : s.assignment_status === "declined"
-                    ? "border-l-destructive bg-destructive/5"
-                    : "border-l-muted-foreground/40"
-                } ${active ? "ring-1 ring-primary/40" : ""}`}
-              >
+        <Tabs defaultValue="objects">
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="objects"><Building2 className="w-3.5 h-3.5 mr-1.5" /> Nach Objekt</TabsTrigger>
+            <TabsTrigger value="list"><LayoutList className="w-3.5 h-3.5 mr-1.5" /> Liste</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="objects" className="space-y-3 mt-3">
+            {(() => {
+              // Group by object (location)
+              const groups = new Map<string, Shift[]>();
+              for (const s of shifts) {
+                const key = s.location.trim();
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key)!.push(s);
+              }
+              // Sort by total quantity desc
+              const sorted = Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length);
+              return sorted.map(([loc, list]) => {
+                const securityCount = list.filter((x) => x.service_type === "security").length;
+                const cleaningCount = list.filter((x) => x.service_type === "cleaning").length;
+                const accepted = list.filter((x) => x.assignment_status === "accepted").length;
+                const pending = list.filter((x) => x.assignment_status === "pending").length;
+                const declined = list.filter((x) => x.assignment_status === "declined").length;
+                const address = list.find((x) => x.address)?.address;
+                return (
+                  <Card key={loc} className="p-3 space-y-2.5">
+                    <div className="flex items-start gap-2">
+                      <Building2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm truncate">{loc}</h3>
+                        {address && <p className="text-[11px] text-muted-foreground truncate">{address}</p>}
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold shrink-0">
+                        {list.length} Schicht{list.length === 1 ? "" : "en"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-[10px]">
+                      {securityCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-muted font-medium">🛡️ Security: {securityCount}</span>
+                      )}
+                      {cleaningCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-muted font-medium">🧹 Reinigung: {cleaningCount}</span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 font-medium">
+                        ✓ {accepted} besetzt
+                      </span>
+                      {pending > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-medium">
+                          ? {pending} offen
+                        </span>
+                      )}
+                      {declined > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-medium">
+                          ✕ {declined} abgelehnt
+                        </span>
+                      )}
+                    </div>
+                    <ShiftMiniCalendar
+                      shifts={list.map((s) => ({
+                        id: s.id,
+                        date: s.date,
+                        start_time: s.start_time,
+                        end_time: s.end_time,
+                        assignment_status: s.assignment_status,
+                        service_type: s.service_type,
+                      }))}
+                    />
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                        Schichten anzeigen ({list.length})
+                      </summary>
+                      <div className="mt-2 space-y-1">
+                        {list.map((s) => (
+                          <div key={s.id} className="flex items-center gap-2 text-[11px] py-1 border-b last:border-0">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              s.assignment_status === "accepted" ? "bg-emerald-500"
+                              : s.assignment_status === "declined" ? "bg-destructive" : "bg-amber-500"
+                            }`} />
+                            <span className="text-muted-foreground">{format(parseISO(s.date), "dd.MM", { locale: de })}</span>
+                            <span>{s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}</span>
+                            <span className="flex-1 truncate">{empLabel(s.employee_user_id)}</span>
+                            <span className="text-[9px]">{s.service_type === "cleaning" ? "🧹" : "🛡️"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  </Card>
+                );
+              });
+            })()}
+          </TabsContent>
+
+          <TabsContent value="list" className="space-y-2 mt-3">
+            {shifts.map((s) => {
+              const active = isActive(s);
+              const loc = latestLoc[s.id];
+              return (
+                <Card
+                  key={s.id}
+                  className={`p-3 space-y-1.5 border-l-4 ${
+                    s.assignment_status === "accepted"
+                      ? "border-l-emerald-500 bg-emerald-500/5"
+                      : s.assignment_status === "declined"
+                      ? "border-l-destructive bg-destructive/5"
+                      : "border-l-muted-foreground/40"
+                  } ${active ? "ring-1 ring-primary/40" : ""}`}
+                >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted font-semibold uppercase tracking-wide">
                     {s.service_type === "cleaning" ? "🧹 Reinigung" : "🛡️ Security"}
@@ -368,9 +462,10 @@ export default function ShiftsPage() {
                   <p className="text-[11px] text-muted-foreground italic">Warte auf Standort…</p>
                 )}
               </Card>
-            );
-          })}
-        </div>
+              );
+            })}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
