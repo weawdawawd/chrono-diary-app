@@ -530,8 +530,22 @@ export default function ShiftsPage() {
                       <HelpCircle className="w-3 h-3" /> Offen
                     </span>
                   )}
+                  {s.assignment_status === "cancelled" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
+                      <Ban className="w-3 h-3" /> Storniert
+                    </span>
+                  )}
                   {active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">LIVE</span>}
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(s.id)}>
+                  {s.assignment_status === "cancelled" ? (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Reaktivieren" onClick={() => reactivate(s.id)}>
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                    </Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Stornieren" onClick={() => cancel(s.id)}>
+                      <Ban className="w-3.5 h-3.5 text-muted-foreground" />
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="h-7 w-7" title="Löschen" onClick={() => remove(s.id)}>
                     <Trash2 className="w-3.5 h-3.5 text-destructive" />
                   </Button>
                 </div>
