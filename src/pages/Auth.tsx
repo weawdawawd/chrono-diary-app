@@ -45,7 +45,13 @@ export default function AuthPage() {
         setMode("login");
       }
     } catch (err: any) {
-      toast.error(err.message || "Ein Fehler ist aufgetreten");
+      console.error("[auth] error", err);
+      const msg = err?.message || "";
+      let userMsg = "Ein Fehler ist aufgetreten. Bitte versuche es später.";
+      if (/invalid login credentials/i.test(msg)) userMsg = "E-Mail oder Passwort ungültig.";
+      else if (/email not confirmed/i.test(msg)) userMsg = "Bitte bestätige zuerst deine E-Mail.";
+      else if (/rate limit|too many/i.test(msg)) userMsg = "Zu viele Versuche. Bitte später erneut versuchen.";
+      toast.error(userMsg);
     } finally {
       setLoading(false);
     }
