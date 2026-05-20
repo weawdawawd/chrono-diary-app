@@ -5,5 +5,10 @@
   "server": {
     "url": "https://1aa0f344-dafd-453e-8d6e-7f4e11a90c58.lovableproject.com?forceHideBadge=true",
     "cleartext": true
+  },
+  "plugins": {
+    "BackgroundGeolocation": {
+      "requestPermissions": true
+    }
   }
 }
