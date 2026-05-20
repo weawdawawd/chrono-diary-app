@@ -155,7 +155,7 @@ export default function ShiftsPage() {
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Neue Schicht</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Schicht zuweisen</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div className="space-y-1.5">

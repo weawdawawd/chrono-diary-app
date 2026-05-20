@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import MyShifts from "@/components/MyShifts";
 import SosBanner from "@/components/SosBanner";
-import PhoneSetting from "@/components/PhoneSetting";
+import SosButton from "@/components/SosButton";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 
@@ -125,8 +125,11 @@ const Index = () => {
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
         <SosBanner userId={user.id} />
+        <div className="flex justify-end">
+          <SosButton userId={user.id} />
+        </div>
         <MyShifts userId={user.id} />
-        <PhoneSetting userId={user.id} />
+
 
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
