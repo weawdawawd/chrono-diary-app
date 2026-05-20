@@ -233,10 +233,10 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
               </p>
               <div className="flex gap-2">
                 <Button size="sm" className="h-8" disabled={busy === s.id} onClick={() => accept(s)}>
-                  Standort freigeben
+                  {t("Standort freigeben")}
                 </Button>
                 <Button size="sm" variant="outline" className="h-8" disabled={busy === s.id} onClick={() => decline(s)}>
-                  Ablehnen
+                  {t("Ablehnen")}
                 </Button>
               </div>
             </AlertDescription>
