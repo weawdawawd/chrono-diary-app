@@ -505,6 +505,8 @@ export default function ShiftsPage() {
                       ? "border-l-emerald-500 bg-emerald-500/5"
                       : s.assignment_status === "declined"
                       ? "border-l-destructive bg-destructive/5"
+                      : s.assignment_status === "cancelled"
+                      ? "border-l-muted-foreground bg-muted/40 opacity-70"
                       : "border-l-muted-foreground/40"
                   } ${active ? "ring-1 ring-primary/40" : ""}`}
                 >
