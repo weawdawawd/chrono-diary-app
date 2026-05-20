@@ -125,6 +125,30 @@ export default function EmployeesPage() {
               Nur-Lese-Ansicht · {entries.length} Einträge{empPhone ? ` · ${empPhone}` : ""}
             </p>
           </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" disabled={deletingId === selectedEmployee}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Mitarbeiter entfernen?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {empName} und alle zugehörigen Daten (Schichten, Einträge, Standorte) werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => deleteEmployee(selectedEmployee!, empName)}
+                >
+                  Endgültig entfernen
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <Card className="p-4">
