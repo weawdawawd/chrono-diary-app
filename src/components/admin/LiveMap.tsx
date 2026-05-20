@@ -40,17 +40,31 @@ type SosAlert = {
   message: string | null; created_at: string; display_name: string;
 };
 
+type GlobalLocation = {
+  id: string; name: string; address: string | null;
+  lat: number | null; lng: number | null; geofence_radius_m: number;
+};
+
 export default function LiveMap() {
   const [points, setPoints] = useState<LivePoint[]>([]);
   const [waiting, setWaiting] = useState<WaitingShift[]>([]);
   const [sosAlerts, setSosAlerts] = useState<SosAlert[]>([]);
+  const [objects, setObjects] = useState<GlobalLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const notifiedSosRef = useState(() => new Set<string>())[0];
+
+  // Request browser notification permission once
+  useEffect(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
 
   const load = async () => {
     const today = new Date().toISOString().slice(0, 10);
     const t = new Date().toTimeString().slice(0, 8);
 
-    const [{ data: shifts }, { data: locs }, { data: profiles }, { data: sos }] = await Promise.all([
+    const [{ data: shifts }, { data: locs }, { data: profiles }, { data: sos }, { data: globals }] = await Promise.all([
       supabase
         .from("shifts")
         .select(
@@ -71,7 +85,11 @@ export default function LiveMap() {
         .is("resolved_at", null)
         .gte("created_at", new Date(Date.now() - 2 * 3600_000).toISOString())
         .order("created_at", { ascending: false }),
+      supabase
+        .from("global_locations")
+        .select("id, name, address, lat, lng, geofence_radius_m"),
     ]);
+    setObjects(((globals ?? []) as GlobalLocation[]).filter((g) => g.lat != null && g.lng != null));
 
     const profileMap = new Map(
       (profiles ?? []).map((p: any) => [p.user_id, p.display_name || p.email || "?"])
@@ -118,6 +136,20 @@ export default function LiveMap() {
       ...a,
       display_name: profileMap.get(a.user_id) || "Mitarbeiter",
     }));
+
+    sosWithNames.forEach((a) => {
+      if (notifiedSosRef.has(a.id)) return;
+      notifiedSosRef.add(a.id);
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(`🚨 SOS · ${a.display_name}`, {
+            body: a.message || "Notruf empfangen – sofort prüfen.",
+            tag: a.id,
+            requireInteraction: true,
+          });
+        } catch {}
+      }
+    });
 
     setPoints(result);
     setWaiting(wait);
@@ -184,6 +216,22 @@ export default function LiveMap() {
             attribution="&copy; OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {objects.map((o) => (
+            <Circle
+              key={o.id}
+              center={[o.lat!, o.lng!]}
+              radius={o.geofence_radius_m}
+              pathOptions={{ color: "#C9A961", fillColor: "#C9A961", fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }}
+            >
+              <Popup>
+                <div className="text-xs">
+                  <div className="font-semibold">{o.name}</div>
+                  {o.address && <div className="text-muted-foreground">{o.address}</div>}
+                  <div className="text-muted-foreground">Radius: {o.geofence_radius_m} m</div>
+                </div>
+              </Popup>
+            </Circle>
+          ))}
           {points.map((p) => (
             <div key={p.shift_id}>
               {p.geofence && (

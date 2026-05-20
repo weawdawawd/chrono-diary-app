@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, ChevronLeft, FileText, FileSpreadsheet, Eye,
-  MapPin, Clock, Coffee, ShieldCheck,
+  MapPin, Clock, Coffee, ShieldCheck, Phone,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -15,7 +15,7 @@ import { calculateDurationMinutes } from "@/lib/types";
 import { exportToPDF } from "@/lib/exportPDF";
 import { exportToCSV } from "@/lib/exportCSV";
 
-type Profile = { user_id: string; email: string | null; display_name: string | null };
+type Profile = { user_id: string; email: string | null; display_name: string | null; phone: string | null };
 type WorkEntry = Tables<"work_entries">;
 
 const entryMinutes = (e: WorkEntry) => {
@@ -33,7 +33,7 @@ export default function EmployeesPage() {
   useEffect(() => {
     (async () => {
       const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
-        supabase.from("profiles").select("user_id, email, display_name"),
+        supabase.from("profiles").select("user_id, email, display_name, phone"),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
       ]);
@@ -83,6 +83,8 @@ export default function EmployeesPage() {
     }, {});
     const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
+    const empProfile = profiles.find((p) => p.user_id === selectedEmployee);
+    const empPhone = empProfile?.phone;
     return (
       <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
         <div className="flex items-center gap-2">
@@ -91,8 +93,17 @@ export default function EmployeesPage() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="font-display font-bold text-lg leading-tight truncate">{empName}</h1>
-            <p className="text-[11px] text-muted-foreground">Nur-Lese-Ansicht · {entries.length} Einträge</p>
+            <p className="text-[11px] text-muted-foreground">
+              Nur-Lese-Ansicht · {entries.length} Einträge{empPhone ? ` · ${empPhone}` : ""}
+            </p>
           </div>
+          {empPhone && (
+            <Button size="sm" asChild className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <a href={`tel:${empPhone.replace(/\s/g, "")}`}>
+                <Phone className="w-3.5 h-3.5 mr-1.5" /> Anrufen
+              </a>
+            </Button>
+          )}
         </div>
 
         <Card className="p-4">
@@ -191,22 +202,40 @@ export default function EmployeesPage() {
           {employees.map((emp) => {
             const stats = employeeStats.get(emp.user_id) ?? { count: 0, minutes: 0 };
             return (
-              <button
+              <div
                 key={emp.user_id}
-                onClick={() => setSelectedEmployee(emp.user_id)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted transition text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted transition"
               >
-                <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary">
-                  {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{emp.display_name || emp.email}</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                <button
+                  onClick={() => setSelectedEmployee(emp.user_id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
+                    {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
                   </div>
-                </div>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-              </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{emp.display_name || emp.email}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                      {emp.phone ? ` · ${emp.phone}` : ""}
+                    </div>
+                  </div>
+                  <Eye className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+                {emp.phone && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    asChild
+                    className="h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10 shrink-0"
+                    aria-label={`${emp.display_name || emp.email} anrufen`}
+                  >
+                    <a href={`tel:${emp.phone.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()}>
+                      <Phone className="w-4 h-4" />
+                    </a>
+                  </Button>
+                )}
+              </div>
             );
           })}
         </div>
