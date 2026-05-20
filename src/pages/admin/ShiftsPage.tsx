@@ -582,6 +582,8 @@ export default function ShiftsPage() {
             })}
           </TabsContent>
         </Tabs>
+          )}
+        </>
       )}
     </div>
   );
