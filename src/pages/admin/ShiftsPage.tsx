@@ -173,6 +173,7 @@ export default function ShiftsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1.5">
                 <Label className="text-xs">Mitarbeiter *</Label>
                 <Select value={empId} onValueChange={setEmpId}>
                   <SelectTrigger><SelectValue placeholder="Wählen…" /></SelectTrigger>
