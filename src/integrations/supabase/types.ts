@@ -250,6 +250,7 @@ export type Database = {
       shifts: {
         Row: {
           address: string | null
+          assignment_status: Database["public"]["Enums"]["assignment_status"]
           created_at: string
           created_by: string
           date: string
@@ -267,6 +268,8 @@ export type Database = {
           location_consent_declined: boolean
           note: string | null
           requires_location: boolean
+          responded_at: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
           start_location_at: string | null
           start_location_lat: number | null
           start_location_lng: number | null
@@ -274,6 +277,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          assignment_status?: Database["public"]["Enums"]["assignment_status"]
           created_at?: string
           created_by: string
           date: string
@@ -291,6 +295,8 @@ export type Database = {
           location_consent_declined?: boolean
           note?: string | null
           requires_location?: boolean
+          responded_at?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"]
           start_location_at?: string | null
           start_location_lat?: number | null
           start_location_lng?: number | null
@@ -298,6 +304,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          assignment_status?: Database["public"]["Enums"]["assignment_status"]
           created_at?: string
           created_by?: string
           date?: string
@@ -315,6 +322,8 @@ export type Database = {
           location_consent_declined?: boolean
           note?: string | null
           requires_location?: boolean
+          responded_at?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"]
           start_location_at?: string | null
           start_location_lat?: number | null
           start_location_lng?: number | null
@@ -474,6 +483,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "employee"
+      assignment_status: "pending" | "accepted" | "declined"
+      service_type: "security" | "cleaning"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -602,6 +613,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "employee"],
+      assignment_status: ["pending", "accepted", "declined"],
+      service_type: ["security", "cleaning"],
     },
   },
 } as const
