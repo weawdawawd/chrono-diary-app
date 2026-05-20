@@ -33,6 +33,9 @@ type Shift = {
   location_consent_declined: boolean;
   start_location_lat: number | null; start_location_lng: number | null;
   end_location_lat: number | null; end_location_lng: number | null;
+  service_type: "security" | "cleaning";
+  assignment_status: "pending" | "accepted" | "declined";
+  responded_at: string | null;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
 
