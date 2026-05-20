@@ -7,7 +7,7 @@ type ShiftLike = {
   date: string;
   start_time: string;
   end_time: string;
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
   service_type?: "security" | "cleaning";
   location?: string;
 };
