@@ -21,6 +21,7 @@ import { useEffect } from "react";
 
 interface Props {
   email?: string;
+  userId?: string;
   entries: WorkEntry[];
   settings: UserSettings | null;
   onSaveSettings: (h: number) => Promise<void>;
@@ -31,11 +32,12 @@ interface Props {
 }
 
 export default function HeaderMenu({
-  email, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
+  email, userId, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
+  const [openShifts, setOpenShifts] = useState(false);
   const [dark, setDark] = useState(() =>
     typeof window !== "undefined" && document.documentElement.classList.contains("dark")
   );
