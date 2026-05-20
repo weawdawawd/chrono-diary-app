@@ -65,6 +65,12 @@ export default function ShiftsPage() {
   const [serviceType, setServiceType] = useState<"security" | "cleaning">("security");
   const [creating, setCreating] = useState(false);
 
+  // Filter
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined">("all");
+  const [filterService, setFilterService] = useState<"all" | "security" | "cleaning">("all");
+  const [filterEmployee, setFilterEmployee] = useState<string>("all");
+
   const refresh = async () => {
     const [{ data: p }, { data: r }, { data: s }, { data: l }, { data: gl }, { data: ga }] = await Promise.all([
       supabase.from("profiles").select("user_id, email, display_name"),
