@@ -338,6 +338,7 @@ export default function ShiftsPage() {
                   <SelectItem value="pending">Offen</SelectItem>
                   <SelectItem value="accepted">Besetzt</SelectItem>
                   <SelectItem value="declined">Abgelehnt</SelectItem>
+                  <SelectItem value="cancelled">Storniert</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterService} onValueChange={(v) => setFilterService(v as any)}>
