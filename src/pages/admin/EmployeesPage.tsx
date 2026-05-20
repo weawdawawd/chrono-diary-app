@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, ChevronLeft, FileText, FileSpreadsheet, Eye,
-  MapPin, Clock, Coffee, ShieldCheck, Phone,
+  MapPin, Clock, Coffee, ShieldCheck,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
