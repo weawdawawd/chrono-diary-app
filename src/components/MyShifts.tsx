@@ -348,7 +348,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                       target="_blank" rel="noreferrer"
                       className="flex items-center gap-1 text-primary hover:underline shrink-0"
                     >
-                      <Navigation className="w-3 h-3" /> Route
+                      <Navigation className="w-3 h-3" /> {t("Route")}
                     </a>
                   </div>
                 )}
