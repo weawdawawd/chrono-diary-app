@@ -284,7 +284,7 @@ export default function ShiftsPage() {
                   placeholder="z.B. Maler-Arbeiten"
                 />
                 <datalist id="shift-activities">
-                  {savedActivities.map((n) => <option key={n} value={n} />)}
+                  {activitySuggestions.map((n) => <option key={n} value={n} />)}
                 </datalist>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
