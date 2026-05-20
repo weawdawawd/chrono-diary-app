@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation, AlertTriangle } from "lucide-react";
+import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation, AlertTriangle, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
@@ -22,6 +22,8 @@ type Shift = {
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
+  service_type: "security" | "cleaning";
+  assignment_status: "pending" | "accepted" | "declined";
 };
 
 // Haversine in metres
