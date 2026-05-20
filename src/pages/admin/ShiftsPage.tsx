@@ -388,7 +388,7 @@ export default function ShiftsPage() {
             {(() => {
               // Group by object (location)
               const groups = new Map<string, Shift[]>();
-              for (const s of shifts) {
+              for (const s of filteredShifts) {
                 const key = s.location.trim();
                 if (!groups.has(key)) groups.set(key, []);
                 groups.get(key)!.push(s);
@@ -471,7 +471,7 @@ export default function ShiftsPage() {
           </TabsContent>
 
           <TabsContent value="list" className="space-y-2 mt-3">
-            {shifts.map((s) => {
+            {filteredShifts.map((s) => {
               const active = isActive(s);
               const loc = latestLoc[s.id];
               return (
