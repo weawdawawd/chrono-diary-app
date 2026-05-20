@@ -153,17 +153,26 @@ export default function ShiftsPage() {
     <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <CalendarClock className="w-5 h-5 text-primary" />
-          <h1 className="font-display font-bold text-lg">Schichtplan</h1>
+          <ClipboardList className="w-5 h-5 text-primary" />
+          <h1 className="font-display font-bold text-lg">Bestellungen</h1>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Neue Schicht</Button>
+            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Neue Bestellung</Button>
           </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Schicht zuweisen</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Bestellung zuweisen</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div className="space-y-1.5">
+                <Label className="text-xs">Art *</Label>
+                <Select value={serviceType} onValueChange={(v) => setServiceType(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="security">🛡️ Security</SelectItem>
+                    <SelectItem value="cleaning">🧹 Reinigung</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
                 <Label className="text-xs">Mitarbeiter *</Label>
                 <Select value={empId} onValueChange={setEmpId}>
                   <SelectTrigger><SelectValue placeholder="Wählen…" /></SelectTrigger>
