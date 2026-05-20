@@ -190,7 +190,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
         .update({ assignment_status: status, responded_at: new Date().toISOString() })
         .eq("id", s.id);
       if (error) throw error;
-      toast.success(status === "accepted" ? "Schicht angenommen" : "Schicht abgelehnt");
+      toast.success(status === "accepted" ? t("Schicht angenommen") : t("Schicht abgelehnt"));
       fetchShifts();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
