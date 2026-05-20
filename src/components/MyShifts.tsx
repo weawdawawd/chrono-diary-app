@@ -281,6 +281,8 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                     ? "border-l-emerald-500"
                     : s.assignment_status === "declined"
                     ? "border-l-destructive opacity-70"
+                    : s.assignment_status === "cancelled"
+                    ? "border-l-muted-foreground opacity-60"
                     : "border-l-amber-500"
                 } ${active ? "bg-primary/10 border-y border-r border-primary/30" : "bg-muted/40"}`}
               >
