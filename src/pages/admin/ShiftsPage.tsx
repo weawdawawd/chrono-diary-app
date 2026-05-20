@@ -265,9 +265,36 @@ export default function ShiftsPage() {
             const active = isActive(s);
             const loc = latestLoc[s.id];
             return (
-              <Card key={s.id} className={`p-3 space-y-1.5 ${active ? "border-primary/60" : ""}`}>
-                <div className="flex items-center gap-2">
+              <Card
+                key={s.id}
+                className={`p-3 space-y-1.5 border-l-4 ${
+                  s.assignment_status === "accepted"
+                    ? "border-l-emerald-500 bg-emerald-500/5"
+                    : s.assignment_status === "declined"
+                    ? "border-l-destructive bg-destructive/5"
+                    : "border-l-muted-foreground/40"
+                } ${active ? "ring-1 ring-primary/40" : ""}`}
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted font-semibold uppercase tracking-wide">
+                    {s.service_type === "cleaning" ? "🧹 Reinigung" : "🛡️ Security"}
+                  </span>
                   <span className="font-medium text-sm flex-1 truncate">{empLabel(s.employee_user_id)}</span>
+                  {s.assignment_status === "accepted" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 font-semibold">
+                      <CheckCircle2 className="w-3 h-3" /> Besetzt
+                    </span>
+                  )}
+                  {s.assignment_status === "declined" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-semibold">
+                      <XCircle className="w-3 h-3" /> Nicht besetzt
+                    </span>
+                  )}
+                  {s.assignment_status === "pending" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-semibold">
+                      <HelpCircle className="w-3 h-3" /> Offen
+                    </span>
+                  )}
                   {active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">LIVE</span>}
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(s.id)}>
                     <Trash2 className="w-3.5 h-3.5 text-destructive" />
