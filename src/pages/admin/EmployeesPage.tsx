@@ -202,22 +202,40 @@ export default function EmployeesPage() {
           {employees.map((emp) => {
             const stats = employeeStats.get(emp.user_id) ?? { count: 0, minutes: 0 };
             return (
-              <button
+              <div
                 key={emp.user_id}
-                onClick={() => setSelectedEmployee(emp.user_id)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted transition text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted transition"
               >
-                <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary">
-                  {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{emp.display_name || emp.email}</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                <button
+                  onClick={() => setSelectedEmployee(emp.user_id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
+                    {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
                   </div>
-                </div>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-              </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{emp.display_name || emp.email}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                      {emp.phone ? ` · ${emp.phone}` : ""}
+                    </div>
+                  </div>
+                  <Eye className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+                {emp.phone && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    asChild
+                    className="h-9 w-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10 shrink-0"
+                    aria-label={`${emp.display_name || emp.email} anrufen`}
+                  >
+                    <a href={`tel:${emp.phone.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()}>
+                      <Phone className="w-4 h-4" />
+                    </a>
+                  </Button>
+                )}
+              </div>
             );
           })}
         </div>
