@@ -35,6 +35,39 @@ export default function EmployeesPage() {
   const [allEntries, setAllEntries] = useState<WorkEntry[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const loadAll = async () => {
+    const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
+      supabase.from("profiles").select("user_id, email, display_name, phone"),
+      supabase.from("user_roles").select("user_id, role"),
+      supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
+    ]);
+    setProfiles(p ?? []);
+    const empIds = new Set<string>();
+    (r ?? []).forEach((row: any) => { if (row.role === "employee") empIds.add(row.user_id); });
+    setEmployeeIds(empIds);
+    setAllEntries(ent ?? []);
+  };
+
+  const deleteEmployee = async (uid: string, name: string) => {
+    setDeletingId(uid);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-employee", {
+        body: { userId: uid },
+      });
+      if (error || (data as any)?.error) {
+        throw new Error((data as any)?.error || error?.message || "Fehler");
+      }
+      toast.success(`${name} wurde entfernt.`);
+      if (selectedEmployee === uid) setSelectedEmployee(null);
+      await loadAll();
+    } catch (e: any) {
+      toast.error(e?.message || "Mitarbeiter konnte nicht entfernt werden");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
