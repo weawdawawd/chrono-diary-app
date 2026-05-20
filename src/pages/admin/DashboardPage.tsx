@@ -59,11 +59,28 @@ export default function DashboardPage() {
 
   const employees = profiles.filter((p) => roles[p.user_id] === "employee");
 
+  const stats = [
+    { to: "/admin/employees", icon: Users, value: employees.length, label: "Mitarbeiter", tint: "from-primary/20 to-primary/5" },
+    { to: "/admin/invitations", icon: Link2, value: invitationsCount, label: "Offene Einladungen", tint: "from-accent/20 to-accent/5" },
+    { to: "/admin/shifts", icon: CalendarClock, value: shiftsToday, label: "Schichten heute", tint: "from-sky-500/20 to-sky-500/5" },
+    { to: "/admin/shifts", icon: Activity, value: activeNow, label: "Live aktiv", tint: "from-emerald-500/20 to-emerald-500/5", live: activeNow > 0 },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="w-5 h-5 text-primary" />
-        <h1 className="font-display font-bold text-lg">Admin-Dashboard</h1>
+    <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/15 via-background to-accent/10 p-5">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="font-display font-bold text-xl leading-tight">Admin-Dashboard</h1>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}
+            </p>
+          </div>
+        </div>
       </div>
 
       {loadErrors.length > 0 && (
@@ -79,34 +96,25 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Link to="/admin/employees">
-          <Card className="p-4 hover:border-primary/50 transition">
-            <Users className="w-5 h-5 text-primary mb-2" />
-            <p className="text-2xl font-display font-bold">{employees.length}</p>
-            <p className="text-xs text-muted-foreground">Mitarbeiter</p>
-          </Card>
-        </Link>
-        <Link to="/admin/invitations">
-          <Card className="p-4 hover:border-primary/50 transition">
-            <Link2 className="w-5 h-5 text-primary mb-2" />
-            <p className="text-2xl font-display font-bold">{invitationsCount}</p>
-            <p className="text-xs text-muted-foreground">Offene Einladungen</p>
-          </Card>
-        </Link>
-        <Link to="/admin/shifts">
-          <Card className="p-4 hover:border-primary/50 transition">
-            <CalendarClock className="w-5 h-5 text-primary mb-2" />
-            <p className="text-2xl font-display font-bold">{shiftsToday}</p>
-            <p className="text-xs text-muted-foreground">Schichten heute</p>
-          </Card>
-        </Link>
-        <Link to="/admin/shifts">
-          <Card className="p-4 hover:border-primary/50 transition">
-            <Activity className="w-5 h-5 text-primary mb-2" />
-            <p className="text-2xl font-display font-bold">{activeNow}</p>
-            <p className="text-xs text-muted-foreground">Live aktiv</p>
-          </Card>
-        </Link>
+        {stats.map((s, i) => (
+          <Link key={i} to={s.to}>
+            <Card className={`relative overflow-hidden p-4 hover:border-primary/50 hover:-translate-y-0.5 transition-all bg-gradient-to-br ${s.tint}`}>
+              <div className="flex items-start justify-between">
+                <div className="w-9 h-9 rounded-lg bg-background/60 backdrop-blur flex items-center justify-center">
+                  <s.icon className="w-4 h-4 text-primary" />
+                </div>
+                {s.live && (
+                  <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-emerald-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live
+                  </span>
+                )}
+              </div>
+              <p className="text-3xl font-display font-bold mt-3 leading-none">{s.value}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{s.label}</p>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       <LiveMap />
