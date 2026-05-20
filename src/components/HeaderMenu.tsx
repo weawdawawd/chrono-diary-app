@@ -8,7 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import MyShifts from "@/components/MyShifts";
+import MyShiftsCalendar from "@/components/MyShiftsCalendar";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
 import type { Project } from "@/hooks/useProjects";
@@ -18,6 +21,7 @@ import { useEffect } from "react";
 
 interface Props {
   email?: string;
+  userId?: string;
   entries: WorkEntry[];
   settings: UserSettings | null;
   onSaveSettings: (h: number) => Promise<void>;
@@ -28,11 +32,12 @@ interface Props {
 }
 
 export default function HeaderMenu({
-  email, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
+  email, userId, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
+  const [openShifts, setOpenShifts] = useState(false);
   const [dark, setDark] = useState(() =>
     typeof window !== "undefined" && document.documentElement.classList.contains("dark")
   );
@@ -58,6 +63,11 @@ export default function HeaderMenu({
         <DropdownMenuContent align="end" className="w-60">
           {email && <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground truncate">{email}</DropdownMenuLabel>}
           <DropdownMenuSeparator />
+          {userId && (
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenShifts(true); setOpen(false); }}>
+              <CalendarClock className="w-4 h-4 mr-2 text-accent" /> Meine Schichten
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenExport(true); setOpen(false); }} disabled={entries.length === 0}>
             <Download className="w-4 h-4 mr-2 text-accent" /> Export (PDF / CSV)
           </DropdownMenuItem>
@@ -87,7 +97,24 @@ export default function HeaderMenu({
           onDeleteProject={onDeleteProject}
         />
         <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
+        <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
       </div>
+
+      <Sheet open={openShifts} onOpenChange={setOpenShifts}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="font-display flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-primary" /> Meine Schichten
+            </SheetTitle>
+          </SheetHeader>
+          {userId && (
+            <div className="pt-4 space-y-4">
+              <MyShifts userId={userId} />
+              <MyShiftsCalendar userId={userId} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle, LayoutList, Building2 } from "lucide-react";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle, LayoutList, Building2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -65,6 +65,12 @@ export default function ShiftsPage() {
   const [serviceType, setServiceType] = useState<"security" | "cleaning">("security");
   const [creating, setCreating] = useState(false);
 
+  // Filter
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined">("all");
+  const [filterService, setFilterService] = useState<"all" | "security" | "cleaning">("all");
+  const [filterEmployee, setFilterEmployee] = useState<string>("all");
+
   const refresh = async () => {
     const [{ data: p }, { data: r }, { data: s }, { data: l }, { data: gl }, { data: ga }] = await Promise.all([
       supabase.from("profiles").select("user_id, email, display_name"),
@@ -96,6 +102,47 @@ export default function ShiftsPage() {
     const p = profiles.find((x) => x.user_id === uid);
     return p?.display_name || p?.email || uid.slice(0, 8);
   };
+
+  // Vorschläge: globale Objekte + bereits genutzte Schicht-Orte (eindeutig)
+  const locationSuggestions = useMemo(() => {
+    const set = new Map<string, string>(); // lowercase -> original
+    globalLocations.forEach((g) => set.set(g.name.toLowerCase(), g.name));
+    shifts.forEach((s) => {
+      const k = s.location.trim().toLowerCase();
+      if (k && !set.has(k)) set.set(k, s.location.trim());
+    });
+    return Array.from(set.values()).sort();
+  }, [globalLocations, shifts]);
+
+  // Vorschläge: globale Tätigkeiten + bereits genutzte Notes
+  const activitySuggestions = useMemo(() => {
+    const set = new Map<string, string>();
+    savedActivities.forEach((n) => set.set(n.toLowerCase(), n));
+    shifts.forEach((s) => {
+      const n = (s.note ?? "").trim();
+      if (n) {
+        const k = n.toLowerCase();
+        if (!set.has(k)) set.set(k, n);
+      }
+    });
+    return Array.from(set.values()).sort();
+  }, [savedActivities, shifts]);
+
+  // Gefilterte Bestellungen
+  const filteredShifts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return shifts.filter((s) => {
+      if (filterStatus !== "all" && s.assignment_status !== filterStatus) return false;
+      if (filterService !== "all" && s.service_type !== filterService) return false;
+      if (filterEmployee !== "all" && s.employee_user_id !== filterEmployee) return false;
+      if (q) {
+        const emp = empLabel(s.employee_user_id).toLowerCase();
+        const hay = `${s.location} ${s.address ?? ""} ${s.note ?? ""} ${emp} ${s.date}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [shifts, search, filterStatus, filterService, filterEmployee, profiles]);
 
   // Wenn Name eines bekannten Objekts gewählt wird → Adresse/Koords/Radius übernehmen
   const onLocationChange = (val: string) => {
@@ -211,7 +258,7 @@ export default function ShiftsPage() {
                   placeholder="z.B. Filiale Hauptstraße 12"
                 />
                 <datalist id="shift-locations">
-                  {globalLocations.map((g) => <option key={g.id} value={g.name} />)}
+                  {locationSuggestions.map((n) => <option key={n} value={n} />)}
                 </datalist>
                 {address && (
                   <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -237,7 +284,7 @@ export default function ShiftsPage() {
                   placeholder="z.B. Maler-Arbeiten"
                 />
                 <datalist id="shift-activities">
-                  {savedActivities.map((n) => <option key={n} value={n} />)}
+                  {activitySuggestions.map((n) => <option key={n} value={n} />)}
                 </datalist>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
@@ -262,6 +309,75 @@ export default function ShiftsPage() {
       {shifts.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Bestellungen.</Card>
       ) : (
+        <>
+          {/* Filter bar */}
+          <Card className="p-3 space-y-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Suche: Objekt, Mitarbeiter, Adresse, Datum…"
+                className="h-9 text-sm pl-8 pr-8"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Suche löschen"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Status</SelectItem>
+                  <SelectItem value="pending">Offen</SelectItem>
+                  <SelectItem value="accepted">Besetzt</SelectItem>
+                  <SelectItem value="declined">Abgelehnt</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterService} onValueChange={(v) => setFilterService(v as any)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Arten</SelectItem>
+                  <SelectItem value="security">🛡️ Security</SelectItem>
+                  <SelectItem value="cleaning">🧹 Reinigung</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Mitarbeiter</SelectItem>
+                  {employees.map((e) => (
+                    <SelectItem key={e.user_id} value={e.user_id}>
+                      {e.display_name || e.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {filteredShifts.length} von {shifts.length} Bestellungen
+              {(search || filterStatus !== "all" || filterService !== "all" || filterEmployee !== "all") && (
+                <button
+                  onClick={() => { setSearch(""); setFilterStatus("all"); setFilterService("all"); setFilterEmployee("all"); }}
+                  className="ml-2 text-primary hover:underline"
+                >
+                  Filter zurücksetzen
+                </button>
+              )}
+            </p>
+          </Card>
+
+          {filteredShifts.length === 0 ? (
+            <Card className="p-6 text-center text-sm text-muted-foreground">
+              Keine Bestellungen entsprechen den Filterkriterien.
+            </Card>
+          ) : (
         <Tabs defaultValue="objects">
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="objects"><Building2 className="w-3.5 h-3.5 mr-1.5" /> Nach Objekt</TabsTrigger>
@@ -272,7 +388,7 @@ export default function ShiftsPage() {
             {(() => {
               // Group by object (location)
               const groups = new Map<string, Shift[]>();
-              for (const s of shifts) {
+              for (const s of filteredShifts) {
                 const key = s.location.trim();
                 if (!groups.has(key)) groups.set(key, []);
                 groups.get(key)!.push(s);
@@ -355,7 +471,7 @@ export default function ShiftsPage() {
           </TabsContent>
 
           <TabsContent value="list" className="space-y-2 mt-3">
-            {shifts.map((s) => {
+            {filteredShifts.map((s) => {
               const active = isActive(s);
               const loc = latestLoc[s.id];
               return (
@@ -466,6 +582,8 @@ export default function ShiftsPage() {
             })}
           </TabsContent>
         </Tabs>
+          )}
+        </>
       )}
     </div>
   );
