@@ -40,6 +40,7 @@ function distanceM(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export default function MyShifts({ userId, mode = "all" }: { userId: string; mode?: "all" | "today-consent" }) {
+  const { t } = useT();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [outsideMeters, setOutsideMeters] = useState<number | null>(null);
