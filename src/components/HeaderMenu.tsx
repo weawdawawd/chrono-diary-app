@@ -97,7 +97,24 @@ export default function HeaderMenu({
           onDeleteProject={onDeleteProject}
         />
         <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
+        <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
       </div>
+
+      <Sheet open={openShifts} onOpenChange={setOpenShifts}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="font-display flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-primary" /> Meine Schichten
+            </SheetTitle>
+          </SheetHeader>
+          {userId && (
+            <div className="pt-4 space-y-4">
+              <MyShifts userId={userId} />
+              <MyShiftsCalendar userId={userId} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
