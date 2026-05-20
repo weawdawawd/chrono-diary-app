@@ -38,7 +38,7 @@ function distanceM(lat1: number, lng1: number, lat2: number, lng2: number) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export default function MyShifts({ userId }: { userId: string }) {
+export default function MyShifts({ userId, mode = "all" }: { userId: string; mode?: "all" | "today-consent" }) {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [outsideMeters, setOutsideMeters] = useState<number | null>(null);
