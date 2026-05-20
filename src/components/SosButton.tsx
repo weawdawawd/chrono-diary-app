@@ -62,13 +62,13 @@ export default function SosButton({
           className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold shadow-lg shadow-destructive/30 animate-pulse"
         >
           <Siren className="w-5 h-5 mr-2" />
-          SOS NOTRUF
+          {t("SOS NOTRUF")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <Siren className="w-5 h-5" /> Notruf auslösen?
+            <Siren className="w-5 h-5" /> {t("Notruf auslösen?")}
           </AlertDialogTitle>
           <AlertDialogDescription>
             Dein aktueller Standort wird sofort an den Admin und alle Kollegen
@@ -77,7 +77,7 @@ export default function SosButton({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-1.5">
-          <Label className="text-xs">Kurze Nachricht (optional)</Label>
+          <Label className="text-xs">{t("Kurze Nachricht (optional)")}</Label>
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -86,13 +86,13 @@ export default function SosButton({
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={sending}>Abbrechen</AlertDialogCancel>
+          <AlertDialogCancel disabled={sending}>{t("Abbrechen")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); trigger(); }}
             disabled={sending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {sending ? "Sende…" : "Notruf senden"}
+            {sending ? t("Sende…") : t("Notruf senden")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
