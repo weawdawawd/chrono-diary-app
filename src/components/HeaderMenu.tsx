@@ -5,19 +5,22 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import MyShifts from "@/components/MyShifts";
 import MyShiftsCalendar from "@/components/MyShiftsCalendar";
-import SettingsDialog from "@/components/SettingsDialog";
-import ExportDialog from "@/components/ExportDialog";
 import type { Project } from "@/hooks/useProjects";
 import type { UserSettings } from "@/hooks/useUserSettings";
 import type { WorkEntry } from "@/lib/types";
 import { useEffect } from "react";
+import { useT, LANGUAGES } from "@/lib/i18n";
 
 interface Props {
   email?: string;
@@ -34,6 +37,7 @@ interface Props {
 export default function HeaderMenu({
   email, userId, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
 }: Props) {
+  const { lang, setLang, t } = useT();
   const [open, setOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -52,11 +56,13 @@ export default function HeaderMenu({
     }
   }, [dark]);
 
+  const currentLang = LANGUAGES.find((l) => l.code === lang);
+
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10" aria-label="Menü">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10" aria-label={t("Menü")}>
             <Menu className="w-5 h-5" />
           </Button>
         </DropdownMenuTrigger>
@@ -65,27 +71,48 @@ export default function HeaderMenu({
           <DropdownMenuSeparator />
           {userId && (
             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenShifts(true); setOpen(false); }}>
-              <CalendarClock className="w-4 h-4 mr-2 text-accent" /> Meine Schichten
+              <CalendarClock className="w-4 h-4 mr-2 text-accent" /> {t("Meine Schichten")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenExport(true); setOpen(false); }} disabled={entries.length === 0}>
-            <Download className="w-4 h-4 mr-2 text-accent" /> Export (PDF / CSV)
+            <Download className="w-4 h-4 mr-2 text-accent" /> {t("Export (PDF / CSV)")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenSettings(true); setOpen(false); }}>
-            <Settings className="w-4 h-4 mr-2 text-accent" /> Einstellungen
+            <Settings className="w-4 h-4 mr-2 text-accent" /> {t("Einstellungen")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDark((d) => !d); }}>
             {dark ? <Sun className="w-4 h-4 mr-2 text-accent" /> : <Moon className="w-4 h-4 mr-2 text-accent" />}
-            {dark ? "Heller Modus" : "Dunkler Modus"}
+            {dark ? t("Heller Modus") : t("Dunkler Modus")}
           </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Languages className="w-4 h-4 mr-2 text-accent" />
+              {t("Sprache")}
+              <span className="ml-auto text-base leading-none">{currentLang?.flag}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="w-48">
+                {LANGUAGES.map((l) => (
+                  <DropdownMenuItem
+                    key={l.code}
+                    onSelect={(e) => { e.preventDefault(); setLang(l.code); }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-base leading-none">{l.flag}</span>
+                    <span className="flex-1">{l.native}</span>
+                    {lang === l.code && <Check className="w-3.5 h-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onSignOut} className="text-destructive focus:text-destructive">
-            <LogOut className="w-4 h-4 mr-2" /> Abmelden
+            <LogOut className="w-4 h-4 mr-2" /> {t("Abmelden")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Hidden trigger wrappers — open programmatically */}
       <div className="hidden">
         <SettingsDialogWrapper
           open={openSettings}
@@ -104,7 +131,7 @@ export default function HeaderMenu({
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="font-display flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-primary" /> Meine Schichten
+              <CalendarClock className="w-5 h-5 text-primary" /> {t("Meine Schichten")}
             </SheetTitle>
           </SheetHeader>
           {userId && (

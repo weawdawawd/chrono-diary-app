@@ -8,6 +8,7 @@ import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
 import SosButton from "@/components/SosButton";
+import { useT } from "@/lib/i18n";
 
 type Shift = {
   id: string;
@@ -39,6 +40,7 @@ function distanceM(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export default function MyShifts({ userId, mode = "all" }: { userId: string; mode?: "all" | "today-consent" }) {
+  const { t } = useT();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [outsideMeters, setOutsideMeters] = useState<number | null>(null);
@@ -188,7 +190,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
         .update({ assignment_status: status, responded_at: new Date().toISOString() })
         .eq("id", s.id);
       if (error) throw error;
-      toast.success(status === "accepted" ? "Schicht angenommen" : "Schicht abgelehnt");
+      toast.success(status === "accepted" ? t("Schicht angenommen") : t("Schicht abgelehnt"));
       fetchShifts();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -231,10 +233,10 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
               </p>
               <div className="flex gap-2">
                 <Button size="sm" className="h-8" disabled={busy === s.id} onClick={() => accept(s)}>
-                  Standort freigeben
+                  {t("Standort freigeben")}
                 </Button>
                 <Button size="sm" variant="outline" className="h-8" disabled={busy === s.id} onClick={() => decline(s)}>
-                  Ablehnen
+                  {t("Ablehnen")}
                 </Button>
               </div>
             </AlertDescription>
@@ -263,7 +265,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2">
           <CalendarClock className="w-5 h-5 text-primary" />
-          <h2 className="font-display font-semibold">Meine Schichten</h2>
+          <h2 className="font-display font-semibold">{t("Meine Schichten")}</h2>
         </div>
         <div className="space-y-2">
           {shifts.map((s) => {
@@ -303,7 +305,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                   <Alert className="border-muted-foreground/40 bg-muted/60 p-2.5">
                     <AlertDescription className="text-xs font-medium flex items-center gap-1.5">
                       <XCircle className="w-3.5 h-3.5" />
-                      Diese Schicht wurde vom Admin storniert.
+                      {t("Diese Schicht wurde vom Admin storniert.")}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -312,14 +314,14 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                     <AlertDescription className="text-xs space-y-2">
                       <p className="font-medium flex items-center gap-1.5">
                         <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-                        Kannst du diese Schicht übernehmen?
+                        {t("Kannst du diese Schicht übernehmen?")}
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" className="h-7 text-xs flex-1" disabled={busy === s.id} onClick={() => respondAssignment(s, "accepted")}>
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> Annehmen
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> {t("Annehmen")}
                         </Button>
                         <Button size="sm" variant="outline" className="h-7 text-xs flex-1" disabled={busy === s.id} onClick={() => respondAssignment(s, "declined")}>
-                          <XCircle className="w-3 h-3 mr-1" /> Ablehnen
+                          <XCircle className="w-3 h-3 mr-1" /> {t("Ablehnen")}
                         </Button>
                       </div>
                     </AlertDescription>
@@ -327,12 +329,12 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                 )}
                 {s.assignment_status === "accepted" && (
                   <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 font-semibold">
-                    <CheckCircle2 className="w-3 h-3" /> Angenommen
+                    <CheckCircle2 className="w-3 h-3" /> {t("Angenommen")}
                   </span>
                 )}
                 {s.assignment_status === "declined" && (
                   <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-semibold">
-                    <XCircle className="w-3 h-3" /> Abgelehnt
+                    <XCircle className="w-3 h-3" /> {t("Abgelehnt")}
                   </span>
                 )}
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -346,7 +348,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                       target="_blank" rel="noreferrer"
                       className="flex items-center gap-1 text-primary hover:underline shrink-0"
                     >
-                      <Navigation className="w-3 h-3" /> Route
+                      <Navigation className="w-3 h-3" /> {t("Route")}
                     </a>
                   </div>
                 )}
@@ -379,10 +381,10 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" className="h-7 text-xs" disabled={busy === s.id} onClick={() => accept(s)}>
-                          Akzeptieren
+                          {t("Akzeptieren")}
                         </Button>
                         <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy === s.id} onClick={() => decline(s)}>
-                          Ablehnen
+                          {t("Ablehnen")}
                         </Button>
                       </div>
                     </AlertDescription>
@@ -391,7 +393,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
 
                 {active && accepted && (
                   <p className="text-[11px] text-muted-foreground italic">
-                    Live-Standort wird an deinen Admin gesendet. App geöffnet lassen.
+                    {t("Live-Standort wird an deinen Admin gesendet. App geöffnet lassen.")}
                   </p>
                 )}
               </div>
