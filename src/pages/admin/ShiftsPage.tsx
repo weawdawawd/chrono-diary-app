@@ -60,6 +60,7 @@ export default function ShiftsPage() {
   const [radius, setRadius] = useState<number | null>(null);
   const [activity, setActivity] = useState("");
   const [requiresLocation, setRequiresLocation] = useState(false);
+  const [serviceType, setServiceType] = useState<"security" | "cleaning">("security");
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
