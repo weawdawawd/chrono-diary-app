@@ -8,7 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import MyShifts from "@/components/MyShifts";
+import MyShiftsCalendar from "@/components/MyShiftsCalendar";
 import SettingsDialog from "@/components/SettingsDialog";
 import ExportDialog from "@/components/ExportDialog";
 import type { Project } from "@/hooks/useProjects";
