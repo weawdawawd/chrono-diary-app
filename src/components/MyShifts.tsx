@@ -244,6 +244,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
     );
   }
 
+  return (
     <div className="space-y-3">
       {activeShift && <SosButton userId={userId} activeShiftId={activeShift.id} />}
 
