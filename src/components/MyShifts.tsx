@@ -268,7 +268,8 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
         <div className="space-y-2">
           {shifts.map((s) => {
             const active = isActive(s);
-            const needsConsent = s.requires_location && !s.location_consent_at && !s.location_consent_declined;
+            const isToday = s.date === today;
+            const needsConsent = isToday && s.requires_location && !s.location_consent_at && !s.location_consent_declined;
             const declined = s.requires_location && s.location_consent_declined;
             const accepted = s.requires_location && !!s.location_consent_at;
 
