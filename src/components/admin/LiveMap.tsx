@@ -40,11 +40,25 @@ type SosAlert = {
   message: string | null; created_at: string; display_name: string;
 };
 
+type GlobalLocation = {
+  id: string; name: string; address: string | null;
+  lat: number | null; lng: number | null; geofence_radius_m: number;
+};
+
 export default function LiveMap() {
   const [points, setPoints] = useState<LivePoint[]>([]);
   const [waiting, setWaiting] = useState<WaitingShift[]>([]);
   const [sosAlerts, setSosAlerts] = useState<SosAlert[]>([]);
+  const [objects, setObjects] = useState<GlobalLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const notifiedSosRef = useState(() => new Set<string>())[0];
+
+  // Request browser notification permission once
+  useEffect(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
 
   const load = async () => {
     const today = new Date().toISOString().slice(0, 10);
