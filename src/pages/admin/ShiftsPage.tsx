@@ -103,6 +103,47 @@ export default function ShiftsPage() {
     return p?.display_name || p?.email || uid.slice(0, 8);
   };
 
+  // Vorschläge: globale Objekte + bereits genutzte Schicht-Orte (eindeutig)
+  const locationSuggestions = useMemo(() => {
+    const set = new Map<string, string>(); // lowercase -> original
+    globalLocations.forEach((g) => set.set(g.name.toLowerCase(), g.name));
+    shifts.forEach((s) => {
+      const k = s.location.trim().toLowerCase();
+      if (k && !set.has(k)) set.set(k, s.location.trim());
+    });
+    return Array.from(set.values()).sort();
+  }, [globalLocations, shifts]);
+
+  // Vorschläge: globale Tätigkeiten + bereits genutzte Notes
+  const activitySuggestions = useMemo(() => {
+    const set = new Map<string, string>();
+    savedActivities.forEach((n) => set.set(n.toLowerCase(), n));
+    shifts.forEach((s) => {
+      const n = (s.note ?? "").trim();
+      if (n) {
+        const k = n.toLowerCase();
+        if (!set.has(k)) set.set(k, n);
+      }
+    });
+    return Array.from(set.values()).sort();
+  }, [savedActivities, shifts]);
+
+  // Gefilterte Bestellungen
+  const filteredShifts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return shifts.filter((s) => {
+      if (filterStatus !== "all" && s.assignment_status !== filterStatus) return false;
+      if (filterService !== "all" && s.service_type !== filterService) return false;
+      if (filterEmployee !== "all" && s.employee_user_id !== filterEmployee) return false;
+      if (q) {
+        const emp = empLabel(s.employee_user_id).toLowerCase();
+        const hay = `${s.location} ${s.address ?? ""} ${s.note ?? ""} ${emp} ${s.date}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [shifts, search, filterStatus, filterService, filterEmployee, profiles]);
+
   // Wenn Name eines bekannten Objekts gewählt wird → Adresse/Koords/Radius übernehmen
   const onLocationChange = (val: string) => {
     setLocation(val);
