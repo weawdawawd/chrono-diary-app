@@ -246,23 +246,58 @@ export default function EmployeesPage() {
         <div className="space-y-1.5">
           {employees.map((emp) => {
             const stats = employeeStats.get(emp.user_id) ?? { count: 0, minutes: 0 };
+            const empName = emp.display_name || emp.email || "Mitarbeiter";
             return (
-              <button
+              <div
                 key={emp.user_id}
-                onClick={() => setSelectedEmployee(emp.user_id)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted transition text-left"
+                className="w-full flex items-center gap-2 p-3 rounded-lg bg-muted/40 hover:bg-muted transition"
               >
-                <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
-                  {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{emp.display_name || emp.email}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">
-                    {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                <button
+                  onClick={() => setSelectedEmployee(emp.user_id)}
+                  className="flex-1 flex items-center gap-3 text-left min-w-0"
+                >
+                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
+                    {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
                   </div>
-                </div>
-                <Eye className="w-4 h-4 text-muted-foreground shrink-0" />
-              </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{empName}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
+                    </div>
+                  </div>
+                  <Eye className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive shrink-0"
+                      disabled={deletingId === emp.user_id}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Mitarbeiter entfernen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {empName} und alle zugehörigen Daten (Schichten, Einträge, Standorte) werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => deleteEmployee(emp.user_id, empName)}
+                      >
+                        Endgültig entfernen
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             );
           })}
         </div>
