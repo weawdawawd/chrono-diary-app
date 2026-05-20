@@ -67,7 +67,7 @@ export default function ShiftsPage() {
 
   // Filter
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined" | "cancelled">("all");
   const [filterService, setFilterService] = useState<"all" | "security" | "cleaning">("all");
   const [filterEmployee, setFilterEmployee] = useState<string>("all");
 
