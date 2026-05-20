@@ -186,7 +186,29 @@ export default function ShiftsPage() {
   };
 
   const remove = async (id: string) => {
+    if (!confirm("Diese Bestellung endgültig löschen?")) return;
     await supabase.from("shifts").delete().eq("id", id);
+    refresh();
+  };
+
+  const cancel = async (id: string) => {
+    if (!confirm("Diese Schicht stornieren? Der Mitarbeiter wird informiert.")) return;
+    const { error } = await supabase
+      .from("shifts")
+      .update({ assignment_status: "cancelled", responded_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Schicht storniert");
+    refresh();
+  };
+
+  const reactivate = async (id: string) => {
+    const { error } = await supabase
+      .from("shifts")
+      .update({ assignment_status: "pending", responded_at: null })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Schicht reaktiviert");
     refresh();
   };
 
