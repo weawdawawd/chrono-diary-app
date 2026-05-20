@@ -265,7 +265,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2">
           <CalendarClock className="w-5 h-5 text-primary" />
-          <h2 className="font-display font-semibold">Meine Schichten</h2>
+          <h2 className="font-display font-semibold">{t("Meine Schichten")}</h2>
         </div>
         <div className="space-y-2">
           {shifts.map((s) => {
