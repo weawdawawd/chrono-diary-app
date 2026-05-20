@@ -41,14 +41,14 @@ export default function SosButton({
         message: message.trim() || null,
       });
       if (error) throw error;
-      toast.success("Notruf abgesendet", {
-        description: "Admin und Kollegen im Umkreis von 1 km werden alarmiert.",
+      toast.success(t("Notruf abgesendet"), {
+        description: "Admin & 1km",
         duration: 6000,
       });
       setMessage("");
       setOpen(false);
     } catch (e: any) {
-      toast.error(e.message || "Notruf fehlgeschlagen");
+      toast.error(e.message || t("Notruf fehlgeschlagen"));
     } finally {
       setSending(false);
     }
