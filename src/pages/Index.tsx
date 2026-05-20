@@ -131,6 +131,7 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        <SosBanner userId={user.id} />
         <MyShifts userId={user.id} />
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
