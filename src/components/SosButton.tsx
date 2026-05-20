@@ -19,6 +19,7 @@ export default function SosButton({
   userId: string;
   activeShiftId?: string | null;
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
