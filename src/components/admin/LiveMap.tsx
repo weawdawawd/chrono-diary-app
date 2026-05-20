@@ -216,6 +216,22 @@ export default function LiveMap() {
             attribution="&copy; OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {objects.map((o) => (
+            <Circle
+              key={o.id}
+              center={[o.lat!, o.lng!]}
+              radius={o.geofence_radius_m}
+              pathOptions={{ color: "#C9A961", fillColor: "#C9A961", fillOpacity: 0.08, weight: 1.5, dashArray: "4 4" }}
+            >
+              <Popup>
+                <div className="text-xs">
+                  <div className="font-semibold">{o.name}</div>
+                  {o.address && <div className="text-muted-foreground">{o.address}</div>}
+                  <div className="text-muted-foreground">Radius: {o.geofence_radius_m} m</div>
+                </div>
+              </Popup>
+            </Circle>
+          ))}
           {points.map((p) => (
             <div key={p.shift_id}>
               {p.geofence && (
