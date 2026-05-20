@@ -258,7 +258,7 @@ export default function ShiftsPage() {
       </div>
 
       {shifts.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Schichten geplant.</Card>
+        <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Bestellungen.</Card>
       ) : (
         <div className="space-y-2">
           {shifts.map((s) => {
