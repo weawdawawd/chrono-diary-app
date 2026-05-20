@@ -309,6 +309,75 @@ export default function ShiftsPage() {
       {shifts.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Bestellungen.</Card>
       ) : (
+        <>
+          {/* Filter bar */}
+          <Card className="p-3 space-y-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Suche: Objekt, Mitarbeiter, Adresse, Datum…"
+                className="h-9 text-sm pl-8 pr-8"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Suche löschen"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Status</SelectItem>
+                  <SelectItem value="pending">Offen</SelectItem>
+                  <SelectItem value="accepted">Besetzt</SelectItem>
+                  <SelectItem value="declined">Abgelehnt</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterService} onValueChange={(v) => setFilterService(v as any)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Arten</SelectItem>
+                  <SelectItem value="security">🛡️ Security</SelectItem>
+                  <SelectItem value="cleaning">🧹 Reinigung</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Mitarbeiter</SelectItem>
+                  {employees.map((e) => (
+                    <SelectItem key={e.user_id} value={e.user_id}>
+                      {e.display_name || e.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {filteredShifts.length} von {shifts.length} Bestellungen
+              {(search || filterStatus !== "all" || filterService !== "all" || filterEmployee !== "all") && (
+                <button
+                  onClick={() => { setSearch(""); setFilterStatus("all"); setFilterService("all"); setFilterEmployee("all"); }}
+                  className="ml-2 text-primary hover:underline"
+                >
+                  Filter zurücksetzen
+                </button>
+              )}
+            </p>
+          </Card>
+
+          {filteredShifts.length === 0 ? (
+            <Card className="p-6 text-center text-sm text-muted-foreground">
+              Keine Bestellungen entsprechen den Filterkriterien.
+            </Card>
+          ) : (
         <Tabs defaultValue="objects">
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="objects"><Building2 className="w-3.5 h-3.5 mr-1.5" /> Nach Objekt</TabsTrigger>
