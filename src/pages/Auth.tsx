@@ -66,18 +66,14 @@ export default function AuthPage() {
             transition={{ duration: 0.5 }}
             className="text-center space-y-4"
           >
-            <div className="relative inline-flex">
-              <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center shadow-lg">
-                <Briefcase className="w-10 h-10 text-primary-foreground" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-accent flex items-center justify-center shadow-md">
-                <Clock className="w-4 h-4 text-accent-foreground" />
-              </div>
+            <div className="relative inline-flex flex-col items-center">
+              <div className="absolute inset-0 -m-6 rounded-full bg-gradient-to-br from-accent/30 via-brand-red/10 to-transparent blur-2xl" />
+              <img src={(new URL("../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion Security" className="relative w-24 h-24 object-contain drop-shadow-xl" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-3xl text-foreground">Arbeitszeit</h1>
+              <h1 className="font-display font-bold text-3xl tracking-tight">LEDION <span className="text-brand-red">SECURITY</span></h1>
               <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
-                Erfasse deine Arbeitszeiten einfach und schnell – überall und jederzeit.
+                Arbeitszeit-Erfassung &amp; Schichtplanung für dein Sicherheitsteam.
               </p>
             </div>
           </motion.div>

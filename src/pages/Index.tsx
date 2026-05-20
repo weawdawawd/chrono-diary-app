@@ -13,12 +13,10 @@ import WeeklyChart from "@/components/WeeklyChart";
 import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import SettingsDialog from "@/components/SettingsDialog";
-import ExportDialog from "@/components/ExportDialog";
 import { Navigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut } from "lucide-react";
+import { Briefcase } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
+import HeaderMenu from "@/components/HeaderMenu";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
@@ -104,30 +102,24 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-10">
+      <header className="border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-            <Briefcase className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <BrandLogo size={40} showText textClassName="text-[15px]" />
           <div className="flex-1 min-w-0">
-            <h1 className="font-display font-bold text-lg leading-tight">Arbeitszeit</h1>
-            <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+            <p className="text-[11px] text-muted-foreground truncate text-right">{user.email}</p>
           </div>
-          <div className="flex items-center gap-1">
-            {entries.length > 0 && <ExportDialog entries={entries} />}
-            <SettingsDialog
-              settings={settings}
-              onSaveSettings={upsertSettings}
-              projects={projects}
-              onAddProject={addProject}
-              onDeleteProject={deleteProject}
-            />
-            <DarkModeToggle />
-            <Button variant="ghost" size="icon" onClick={signOut} aria-label="Abmelden" className="h-9 w-9">
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
+          <HeaderMenu
+            email={user.email}
+            entries={entries}
+            settings={settings}
+            onSaveSettings={upsertSettings}
+            projects={projects}
+            onAddProject={addProject}
+            onDeleteProject={deleteProject}
+            onSignOut={signOut}
+          />
         </div>
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-accent to-brand-red opacity-70" />
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">

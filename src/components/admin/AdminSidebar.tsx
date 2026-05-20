@@ -28,13 +28,14 @@ export function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b">
+      <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-4 h-4 text-primary-foreground" />
-          </div>
+          <img src={(new URL("../../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion" className="w-8 h-8 object-contain shrink-0" />
           {!collapsed && (
-            <span className="font-display font-bold text-sm">Admin</span>
+            <div className="leading-none">
+              <div className="font-display font-bold text-sm text-sidebar-foreground">LEDION</div>
+              <div className="font-display text-[9px] tracking-[0.25em] text-brand-red font-semibold -mt-0.5">SECURITY</div>
+            </div>
           )}
         </div>
       </SidebarHeader>
