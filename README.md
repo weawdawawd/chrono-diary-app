@@ -1,73 +1,67 @@
-# Welcome to your Lovable project
+# Arbeitszeit Tracker
 
-## Project info
+Eine PWA-Anwendung zur Eintragung von Arbeitszeiten, Ort und Tätigkeit.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Technologien
 
-## How can I edit this code?
+- **Vite** - Build-Tool und Entwicklungsserver
+- **TypeScript** - Typsichere Entwicklung
+- **React** - UI-Framework
+- **shadcn/ui** - UI-Komponenten
+- **Tailwind CSS** - Styling
+- **Supabase** - Backend und Authentifizierung
+- **Capacitor** - Native Mobile-App Unterstützung
 
-There are several ways of editing your application.
+## Installation
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Repository klonen
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Abhängigkeiten installieren
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Entwicklungsserver starten
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Umgebungsvariablen
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Erstelle eine `.env` Datei im Projektverzeichnis mit folgenden Variablen:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Verfügbare Scripts
 
-## What technologies are used for this project?
+- `npm run dev` - Entwicklungsserver starten
+- `npm run build` - Produktions-Build erstellen
+- `npm run preview` - Produktions-Build lokal testen
+- `npm run lint` - Code-Linting ausführen
+- `npm test` - Tests ausführen
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Vercel (Empfohlen)
 
-## How can I deploy this project?
+1. Verbinde dein GitHub Repository mit Vercel
+2. Setze die Umgebungsvariablen in den Vercel-Projekteinstellungen
+3. Vercel erkennt automatisch die Vite-Konfiguration
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Manuelle Installation
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run build
+# Der `dist` Ordner enthält die statischen Dateien
+```
 
-Yes, you can!
+## Custom Domain
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Um eine eigene Domain zu verbinden:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. Deploye die App auf Vercel
+2. Gehe zu Projekteinstellungen > Domains
+3. Füge deine Domain hinzu und konfiguriere die DNS-Einträge
