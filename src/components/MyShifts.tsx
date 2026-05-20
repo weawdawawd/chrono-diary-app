@@ -8,6 +8,7 @@ import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
 import SosButton from "@/components/SosButton";
+import { useT } from "@/lib/i18n";
 
 type Shift = {
   id: string;
