@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation } from "lucide-react";
+import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation, AlertTriangle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
@@ -16,21 +16,38 @@ type Shift = {
   end_time: string;
   location: string;
   address: string | null;
+  lat: number | null;
+  lng: number | null;
+  geofence_radius_m: number | null;
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
 };
 
+// Haversine in metres
+function distanceM(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 export default function MyShifts({ userId }: { userId: string }) {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [outsideMeters, setOutsideMeters] = useState<number | null>(null);
+  const outsideAlertedRef = useRef(false);
 
   const fetchShifts = useCallback(async () => {
     const today = new Date().toISOString().slice(0, 10);
     const { data } = await supabase
       .from("shifts")
       .select(
-        "id, date, start_time, end_time, location, address, requires_location, location_consent_at, location_consent_declined"
+        "id, date, start_time, end_time, location, address, lat, lng, geofence_radius_m, requires_location, location_consent_at, location_consent_declined"
       )
       .eq("employee_user_id", userId)
       .gte("date", today)
@@ -51,7 +68,51 @@ export default function MyShifts({ userId }: { userId: string }) {
     return s.start_time <= t && s.end_time >= t;
   };
 
-  const activeShift = shifts.find((s) => isActive(s) && s.location_consent_at && !s.location_consent_declined);
+  const activeShift = shifts.find(
+    (s) => isActive(s) && s.location_consent_at && !s.location_consent_declined
+  );
+
+  // Geofence-Überwachung während aktiver Schicht
+  useEffect(() => {
+    if (!activeShift || activeShift.lat == null || activeShift.lng == null || !activeShift.geofence_radius_m) {
+      setOutsideMeters(null);
+      outsideAlertedRef.current = false;
+      return;
+    }
+    if (!("geolocation" in navigator)) return;
+
+    const check = (pos: GeolocationPosition) => {
+      const d = distanceM(
+        pos.coords.latitude, pos.coords.longitude,
+        activeShift.lat!, activeShift.lng!
+      );
+      const radius = activeShift.geofence_radius_m!;
+      if (d > radius) {
+        const over = Math.round(d - radius);
+        setOutsideMeters(over);
+        if (!outsideAlertedRef.current) {
+          outsideAlertedRef.current = true;
+          toast.warning("Geofence verlassen", {
+            description: `Du bist ${over} m außerhalb des Einsatzorts „${activeShift.location}“.`,
+            duration: 10000,
+          });
+        }
+      } else {
+        if (outsideAlertedRef.current) {
+          toast.success("Wieder im Einsatzbereich");
+        }
+        setOutsideMeters(null);
+        outsideAlertedRef.current = false;
+      }
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      check,
+      (err) => console.warn("[geofence] watch error", err),
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 30_000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [activeShift?.id, activeShift?.lat, activeShift?.lng, activeShift?.geofence_radius_m]);
 
   const accept = async (s: Shift) => {
     setBusy(s.id);
@@ -74,7 +135,6 @@ export default function MyShifts({ userId }: { userId: string }) {
         })
         .eq("id", s.id);
       if (error) throw error;
-      // Direkt ersten Live-Ping
       const { error: insErr } = await supabase.from("shift_locations" as any).insert({
         shift_id: s.id,
         user_id: userId,
@@ -88,8 +148,7 @@ export default function MyShifts({ userId }: { userId: string }) {
     } catch (err: any) {
       if (err?.code === 1 || /denied/i.test(err?.message ?? "")) {
         toast.error("Standort blockiert", {
-          description:
-            "Bitte erlaube den Standortzugriff in den Browser-Einstellungen (Schloss-Symbol → Standort → Erlauben).",
+          description: "Bitte erlaube den Standortzugriff in den Browser-Einstellungen.",
           duration: 8000,
         });
       } else if (err?.code === 3) {
@@ -109,10 +168,7 @@ export default function MyShifts({ userId }: { userId: string }) {
     try {
       const { error } = await supabase
         .from("shifts")
-        .update({
-          location_consent_declined: true,
-          location_consent_at: null,
-        })
+        .update({ location_consent_declined: true, location_consent_at: null })
         .eq("id", s.id);
       if (error) throw error;
       toast.warning("Stunden werden für diese Schicht nicht angerechnet");
@@ -126,9 +182,20 @@ export default function MyShifts({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      {activeShift && (
-        <SosButton userId={userId} activeShiftId={activeShift.id} />
+      {activeShift && <SosButton userId={userId} activeShiftId={activeShift.id} />}
+
+      {outsideMeters !== null && (
+        <Alert className="border-amber-500 bg-amber-500/10">
+          <AlertTriangle className="w-4 h-4 text-amber-600" />
+          <AlertDescription className="text-sm">
+            <span className="font-semibold text-amber-700 dark:text-amber-400">
+              Geofence verlassen – {outsideMeters} m außerhalb.
+            </span>{" "}
+            Bitte zurück zum Einsatzort. Der Admin wurde über deinen Standort informiert.
+          </AlertDescription>
+        </Alert>
       )}
+
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2">
           <CalendarClock className="w-5 h-5 text-primary" />
@@ -137,8 +204,7 @@ export default function MyShifts({ userId }: { userId: string }) {
         <div className="space-y-2">
           {shifts.map((s) => {
             const active = isActive(s);
-            const needsConsent =
-              s.requires_location && !s.location_consent_at && !s.location_consent_declined;
+            const needsConsent = s.requires_location && !s.location_consent_at && !s.location_consent_declined;
             const declined = s.requires_location && s.location_consent_declined;
             const accepted = s.requires_location && !!s.location_consent_at;
 
@@ -166,11 +232,8 @@ export default function MyShifts({ userId }: { userId: string }) {
                   <div className="flex items-center justify-between gap-2 text-[11px]">
                     <span className="text-muted-foreground pl-5">{s.address}</span>
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                        s.address
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.address)}`}
+                      target="_blank" rel="noreferrer"
                       className="flex items-center gap-1 text-primary hover:underline shrink-0"
                     >
                       <Navigation className="w-3 h-3" /> Route
@@ -202,25 +265,13 @@ export default function MyShifts({ userId }: { userId: string }) {
                   <Alert className="mt-2 p-2.5">
                     <AlertDescription className="text-xs space-y-2">
                       <p>
-                        Diese Schicht erfordert Standort-Freigabe. Ohne Freigabe werden die Stunden
-                        nicht angerechnet.
+                        Diese Schicht erfordert Standort-Freigabe. Ohne Freigabe werden die Stunden nicht angerechnet.
                       </p>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="h-7 text-xs"
-                          disabled={busy === s.id}
-                          onClick={() => accept(s)}
-                        >
+                        <Button size="sm" className="h-7 text-xs" disabled={busy === s.id} onClick={() => accept(s)}>
                           Akzeptieren
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          disabled={busy === s.id}
-                          onClick={() => decline(s)}
-                        >
+                        <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy === s.id} onClick={() => decline(s)}>
                           Ablehnen
                         </Button>
                       </div>
