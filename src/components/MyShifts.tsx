@@ -199,7 +199,51 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
 
   if (shifts.length === 0) return null;
 
-  return (
+  const today = new Date().toISOString().slice(0, 10);
+
+  // "today-consent" mode: nur Heute-Schichten mit ausstehender Standort-Freigabe anzeigen
+  if (mode === "today-consent") {
+    const todayConsentShifts = shifts.filter(
+      (s) => s.date === today && s.requires_location && !s.location_consent_at && !s.location_consent_declined
+    );
+    if (todayConsentShifts.length === 0 && !activeShift && outsideMeters === null) return null;
+    return (
+      <div className="space-y-3">
+        {activeShift && <SosButton userId={userId} activeShiftId={activeShift.id} />}
+        {outsideMeters !== null && (
+          <Alert className="border-amber-500 bg-amber-500/10">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertDescription className="text-sm">
+              <span className="font-semibold text-amber-700 dark:text-amber-400">
+                Geofence verlassen – {outsideMeters} m außerhalb.
+              </span>{" "}
+              Bitte zurück zum Einsatzort.
+            </AlertDescription>
+          </Alert>
+        )}
+        {todayConsentShifts.map((s) => (
+          <Alert key={s.id} className="border-amber-500/60 bg-amber-500/10">
+            <Shield className="w-4 h-4 text-amber-600" />
+            <AlertDescription className="text-sm space-y-2">
+              <p>
+                <span className="font-semibold">Heute {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)} · {s.location}:</span>{" "}
+                Standort-Freigabe erforderlich, sonst werden die Stunden nicht angerechnet.
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" className="h-8" disabled={busy === s.id} onClick={() => accept(s)}>
+                  Standort freigeben
+                </Button>
+                <Button size="sm" variant="outline" className="h-8" disabled={busy === s.id} onClick={() => decline(s)}>
+                  Ablehnen
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ))}
+      </div>
+    );
+  }
+
     <div className="space-y-3">
       {activeShift && <SosButton userId={userId} activeShiftId={activeShift.id} />}
 
