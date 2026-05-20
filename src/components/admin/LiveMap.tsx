@@ -137,6 +137,20 @@ export default function LiveMap() {
       display_name: profileMap.get(a.user_id) || "Mitarbeiter",
     }));
 
+    sosWithNames.forEach((a) => {
+      if (notifiedSosRef.has(a.id)) return;
+      notifiedSosRef.add(a.id);
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(`🚨 SOS · ${a.display_name}`, {
+            body: a.message || "Notruf empfangen – sofort prüfen.",
+            tag: a.id,
+            requireInteraction: true,
+          });
+        } catch {}
+      }
+    });
+
     setPoints(result);
     setWaiting(wait);
     setSosAlerts(sosWithNames);
