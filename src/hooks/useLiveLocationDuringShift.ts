@@ -14,6 +14,7 @@ type Shift = {
   requires_location: boolean | null;
   location_consent_at: string | null;
   location_consent_declined: boolean | null;
+  end_location_at: string | null;
 };
 
 const PING_INTERVAL_MS = 15 * 60_000; // 15 Minuten
@@ -22,9 +23,8 @@ const PING_INTERVAL_MS = 15 * 60_000; // 15 Minuten
  * Sendet GPS-Pings an shift_locations alle 15 Minuten, solange der Nutzer
  * innerhalb einer aktiven Schicht ist UND Standort-Freigabe erteilt hat.
  *
- * - Web/PWA: `watchPosition` hält die letzte Position aktuell solange der Tab läuft.
- * - Native (Capacitor iOS/Android): `@capacitor-community/background-geolocation`
- *   sendet Standorte auch bei geschlossenem App-Fenster.
+ * Zusätzlich: Wenn eine aktive Schicht endet (Übergang), wird der letzte
+ * bekannte Standort einmalig als end_location_* gespeichert.
  */
 export function useLiveLocationDuringShift(userId: string | undefined) {
   const intervalRef = useRef<number | null>(null);
@@ -32,6 +32,7 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
   const nativeWatchIdRef = useRef<string | null>(null);
   const lastPosRef = useRef<{ lat: number; lng: number; accuracy: number } | null>(null);
   const activeShiftIdRef = useRef<string | null>(null);
+  const endSavedForShiftRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!userId) return;
@@ -56,20 +57,32 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
       pos: { lat: number; lng: number; accuracy: number }
     ) => {
       const { error } = await supabase.from("shift_locations" as any).insert({
-        shift_id: shiftId,
-        user_id: userId,
-        lat: pos.lat,
-        lng: pos.lng,
-        accuracy: pos.accuracy,
+        shift_id: shiftId, user_id: userId,
+        lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy,
       });
       if (error) console.error("[shift-location] ping insert failed", error);
-      else
-        console.info("[shift-location] ping sent", {
-          shiftId,
-          lat: pos.lat,
-          lng: pos.lng,
-          native,
-        });
+      else console.info("[shift-location] ping sent", { shiftId, native });
+    };
+
+    const saveEndLocation = async (shiftId: string) => {
+      if (endSavedForShiftRef.current.has(shiftId)) return;
+      const pos = lastPosRef.current;
+      if (!pos) return;
+      endSavedForShiftRef.current.add(shiftId);
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          end_location_lat: pos.lat,
+          end_location_lng: pos.lng,
+          end_location_at: new Date().toISOString(),
+        })
+        .eq("id", shiftId);
+      if (error) {
+        console.error("[shift-location] end-location save failed", error);
+        endSavedForShiftRef.current.delete(shiftId);
+      } else {
+        console.info("[shift-location] end-location saved", shiftId);
+      }
     };
 
     const sendPing = (shiftId: string) => {
@@ -77,7 +90,7 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
         insertPing(shiftId, lastPosRef.current);
         return;
       }
-      if (native) return; // Native: warten auf nächsten Watcher-Tick
+      if (native) return;
       navigator.geolocation.getCurrentPosition(
         (pos) =>
           insertPing(shiftId, {
@@ -95,7 +108,6 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
         if (nativeWatchIdRef.current) return;
         nativeWatchIdRef.current = await startNativeBackgroundLocation((loc) => {
           lastPosRef.current = loc;
-          // Beim ersten nativen Fix auch sofort senden
           const shiftId = activeShiftIdRef.current;
           if (shiftId) insertPing(shiftId, loc);
         });
@@ -131,11 +143,18 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
       const { data } = await supabase
         .from("shifts")
         .select(
-          "id, date, start_time, end_time, requires_location, location_consent_at, location_consent_declined"
+          "id, date, start_time, end_time, requires_location, location_consent_at, location_consent_declined, end_location_at"
         )
         .eq("employee_user_id", userId);
       if (cancelled) return;
-      const active = findActiveShift((data ?? []) as Shift[]);
+      const shifts = (data ?? []) as Shift[];
+      const active = findActiveShift(shifts);
+
+      // Wenn vorher eine Schicht aktiv war und jetzt nicht mehr → End-Standort speichern
+      const previousActiveId = activeShiftIdRef.current;
+      if (previousActiveId && (!active || active.id !== previousActiveId)) {
+        await saveEndLocation(previousActiveId);
+      }
 
       if (!active || !active.location_consent_at || active.location_consent_declined) {
         activeShiftIdRef.current = null;
