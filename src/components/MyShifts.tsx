@@ -180,6 +180,23 @@ export default function MyShifts({ userId }: { userId: string }) {
     }
   };
 
+  const respondAssignment = async (s: Shift, status: "accepted" | "declined") => {
+    setBusy(s.id);
+    try {
+      const { error } = await supabase
+        .from("shifts")
+        .update({ assignment_status: status, responded_at: new Date().toISOString() })
+        .eq("id", s.id);
+      if (error) throw error;
+      toast.success(status === "accepted" ? "Schicht angenommen" : "Schicht abgelehnt");
+      fetchShifts();
+    } catch (err: any) {
+      toast.error(err.message || "Fehler");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (shifts.length === 0) return null;
 
   return (
