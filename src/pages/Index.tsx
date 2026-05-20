@@ -128,8 +128,8 @@ const Index = () => {
         <div className="flex justify-end">
           <SosButton userId={user.id} />
         </div>
-        <MyShifts userId={user.id} />
-        <MyShiftsCalendar userId={user.id} />
+        <MyShifts userId={user.id} mode="today-consent" />
+
 
 
 
