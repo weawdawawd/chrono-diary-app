@@ -111,6 +111,7 @@ const Index = () => {
           </div>
           <HeaderMenu
             email={user.email}
+            userId={user.id}
             entries={entries}
             settings={settings}
             onSaveSettings={upsertSettings}
