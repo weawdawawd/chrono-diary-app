@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle, LayoutList, Building2, Search, X } from "lucide-react";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle, LayoutList, Building2, Search, X, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -36,7 +36,7 @@ type Shift = {
   start_location_lat: number | null; start_location_lng: number | null;
   end_location_lat: number | null; end_location_lng: number | null;
   service_type: "security" | "cleaning";
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
   responded_at: string | null;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
@@ -67,7 +67,7 @@ export default function ShiftsPage() {
 
   // Filter
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "accepted" | "declined" | "cancelled">("all");
   const [filterService, setFilterService] = useState<"all" | "security" | "cleaning">("all");
   const [filterEmployee, setFilterEmployee] = useState<string>("all");
 
@@ -186,7 +186,29 @@ export default function ShiftsPage() {
   };
 
   const remove = async (id: string) => {
+    if (!confirm("Diese Bestellung endgültig löschen?")) return;
     await supabase.from("shifts").delete().eq("id", id);
+    refresh();
+  };
+
+  const cancel = async (id: string) => {
+    if (!confirm("Diese Schicht stornieren? Der Mitarbeiter wird informiert.")) return;
+    const { error } = await supabase
+      .from("shifts")
+      .update({ assignment_status: "cancelled", responded_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Schicht storniert");
+    refresh();
+  };
+
+  const reactivate = async (id: string) => {
+    const { error } = await supabase
+      .from("shifts")
+      .update({ assignment_status: "pending", responded_at: null })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Schicht reaktiviert");
     refresh();
   };
 
@@ -338,6 +360,7 @@ export default function ShiftsPage() {
                   <SelectItem value="pending">Offen</SelectItem>
                   <SelectItem value="accepted">Besetzt</SelectItem>
                   <SelectItem value="declined">Abgelehnt</SelectItem>
+                  <SelectItem value="cancelled">Storniert</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterService} onValueChange={(v) => setFilterService(v as any)}>
@@ -482,6 +505,8 @@ export default function ShiftsPage() {
                       ? "border-l-emerald-500 bg-emerald-500/5"
                       : s.assignment_status === "declined"
                       ? "border-l-destructive bg-destructive/5"
+                      : s.assignment_status === "cancelled"
+                      ? "border-l-muted-foreground bg-muted/40 opacity-70"
                       : "border-l-muted-foreground/40"
                   } ${active ? "ring-1 ring-primary/40" : ""}`}
                 >
@@ -505,8 +530,22 @@ export default function ShiftsPage() {
                       <HelpCircle className="w-3 h-3" /> Offen
                     </span>
                   )}
+                  {s.assignment_status === "cancelled" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
+                      <Ban className="w-3 h-3" /> Storniert
+                    </span>
+                  )}
                   {active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">LIVE</span>}
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(s.id)}>
+                  {s.assignment_status === "cancelled" ? (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Reaktivieren" onClick={() => reactivate(s.id)}>
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                    </Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Stornieren" onClick={() => cancel(s.id)}>
+                      <Ban className="w-3.5 h-3.5 text-muted-foreground" />
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="h-7 w-7" title="Löschen" onClick={() => remove(s.id)}>
                     <Trash2 className="w-3.5 h-3.5 text-destructive" />
                   </Button>
                 </div>

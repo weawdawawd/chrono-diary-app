@@ -7,7 +7,7 @@ type ShiftLike = {
   date: string;
   start_time: string;
   end_time: string;
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
   service_type?: "security" | "cleaning";
   location?: string;
 };
@@ -56,7 +56,10 @@ export default function ShiftMiniCalendar({
   const next = () => { if (month === 11) { setMonth(0); setYear(year + 1); } else setMonth(month + 1); setSelected(null); };
 
   const dotColor = (status: ShiftLike["assignment_status"]) =>
-    status === "accepted" ? "bg-emerald-500" : status === "declined" ? "bg-destructive" : "bg-amber-500";
+    status === "accepted" ? "bg-emerald-500"
+    : status === "declined" ? "bg-destructive"
+    : status === "cancelled" ? "bg-muted-foreground"
+    : "bg-amber-500";
 
   const selectedShifts = selected ? byDate[selected] ?? [] : [];
 

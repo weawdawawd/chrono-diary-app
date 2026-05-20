@@ -23,7 +23,7 @@ type Shift = {
   location_consent_at: string | null;
   location_consent_declined: boolean;
   service_type: "security" | "cleaning";
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
 };
 
 // Haversine in metres
@@ -281,6 +281,8 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                     ? "border-l-emerald-500"
                     : s.assignment_status === "declined"
                     ? "border-l-destructive opacity-70"
+                    : s.assignment_status === "cancelled"
+                    ? "border-l-muted-foreground opacity-60"
                     : "border-l-amber-500"
                 } ${active ? "bg-primary/10 border-y border-r border-primary/30" : "bg-muted/40"}`}
               >
@@ -297,6 +299,14 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                     </span>
                   )}
                 </div>
+                {s.assignment_status === "cancelled" && (
+                  <Alert className="border-muted-foreground/40 bg-muted/60 p-2.5">
+                    <AlertDescription className="text-xs font-medium flex items-center gap-1.5">
+                      <XCircle className="w-3.5 h-3.5" />
+                      Diese Schicht wurde vom Admin storniert.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {s.assignment_status === "pending" && (
                   <Alert className="border-amber-500/60 bg-amber-500/10 p-2.5">
                     <AlertDescription className="text-xs space-y-2">

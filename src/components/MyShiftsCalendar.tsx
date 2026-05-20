@@ -11,7 +11,7 @@ type Shift = {
   end_time: string;
   location: string;
   service_type: "security" | "cleaning";
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
 };
 
 export default function MyShiftsCalendar({ userId }: { userId: string }) {
