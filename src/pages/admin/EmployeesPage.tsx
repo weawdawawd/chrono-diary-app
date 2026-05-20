@@ -70,18 +70,7 @@ export default function EmployeesPage() {
   };
 
   useEffect(() => {
-    (async () => {
-      const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
-        supabase.from("profiles").select("user_id, email, display_name, phone"),
-        supabase.from("user_roles").select("user_id, role"),
-        supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
-      ]);
-      setProfiles(p ?? []);
-      const empIds = new Set<string>();
-      (r ?? []).forEach((row: any) => { if (row.role === "employee") empIds.add(row.user_id); });
-      setEmployeeIds(empIds);
-      setAllEntries(ent ?? []);
-    })();
+    loadAll();
   }, []);
 
   const employees = useMemo(
