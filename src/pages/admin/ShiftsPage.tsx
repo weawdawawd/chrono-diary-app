@@ -258,7 +258,7 @@ export default function ShiftsPage() {
                   placeholder="z.B. Filiale Hauptstraße 12"
                 />
                 <datalist id="shift-locations">
-                  {globalLocations.map((g) => <option key={g.id} value={g.name} />)}
+                  {locationSuggestions.map((n) => <option key={n} value={n} />)}
                 </datalist>
                 {address && (
                   <p className="text-[10px] text-muted-foreground flex items-center gap-1">
