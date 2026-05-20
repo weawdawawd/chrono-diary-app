@@ -24,6 +24,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import MyShifts from "@/components/MyShifts";
+import SosBanner from "@/components/SosBanner";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 
