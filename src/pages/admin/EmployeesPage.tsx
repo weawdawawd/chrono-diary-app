@@ -83,6 +83,8 @@ export default function EmployeesPage() {
     }, {});
     const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
+    const empProfile = profiles.find((p) => p.user_id === selectedEmployee);
+    const empPhone = empProfile?.phone;
     return (
       <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
         <div className="flex items-center gap-2">
@@ -91,8 +93,17 @@ export default function EmployeesPage() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="font-display font-bold text-lg leading-tight truncate">{empName}</h1>
-            <p className="text-[11px] text-muted-foreground">Nur-Lese-Ansicht · {entries.length} Einträge</p>
+            <p className="text-[11px] text-muted-foreground">
+              Nur-Lese-Ansicht · {entries.length} Einträge{empPhone ? ` · ${empPhone}` : ""}
+            </p>
           </div>
+          {empPhone && (
+            <Button size="sm" asChild className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <a href={`tel:${empPhone.replace(/\s/g, "")}`}>
+                <Phone className="w-3.5 h-3.5 mr-1.5" /> Anrufen
+              </a>
+            </Button>
+          )}
         </div>
 
         <Card className="p-4">
