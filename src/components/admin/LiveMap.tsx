@@ -64,7 +64,7 @@ export default function LiveMap() {
     const today = new Date().toISOString().slice(0, 10);
     const t = new Date().toTimeString().slice(0, 8);
 
-    const [{ data: shifts }, { data: locs }, { data: profiles }, { data: sos }] = await Promise.all([
+    const [{ data: shifts }, { data: locs }, { data: profiles }, { data: sos }, { data: globals }] = await Promise.all([
       supabase
         .from("shifts")
         .select(
@@ -85,7 +85,11 @@ export default function LiveMap() {
         .is("resolved_at", null)
         .gte("created_at", new Date(Date.now() - 2 * 3600_000).toISOString())
         .order("created_at", { ascending: false }),
+      supabase
+        .from("global_locations")
+        .select("id, name, address, lat, lng, geofence_radius_m"),
     ]);
+    setObjects(((globals ?? []) as GlobalLocation[]).filter((g) => g.lat != null && g.lng != null));
 
     const profileMap = new Map(
       (profiles ?? []).map((p: any) => [p.user_id, p.display_name || p.email || "?"])
