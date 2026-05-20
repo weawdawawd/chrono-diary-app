@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  isNative,
+  startNativeBackgroundLocation,
+  stopNativeBackgroundLocation,
+} from "@/lib/nativeLocation";
 
 type Shift = {
   id: string;
@@ -17,20 +22,21 @@ const PING_INTERVAL_MS = 15 * 60_000; // 15 Minuten
  * Sendet GPS-Pings an shift_locations alle 15 Minuten, solange der Nutzer
  * innerhalb einer aktiven Schicht ist UND Standort-Freigabe erteilt hat.
  *
- * Zusätzlich läuft ein `watchPosition`-Abo, damit die letzte Position
- * aktuell bleibt – auch wenn der Tab im Hintergrund ist (PWA/Android).
- * Echtes Background-Tracking bei komplett geschlossener App benötigt das
- * Capacitor-Native-Plugin.
+ * - Web/PWA: `watchPosition` hält die letzte Position aktuell solange der Tab läuft.
+ * - Native (Capacitor iOS/Android): `@capacitor-community/background-geolocation`
+ *   sendet Standorte auch bei geschlossenem App-Fenster.
  */
 export function useLiveLocationDuringShift(userId: string | undefined) {
   const intervalRef = useRef<number | null>(null);
   const watchRef = useRef<number | null>(null);
-  const lastPosRef = useRef<GeolocationPosition | null>(null);
+  const nativeWatchIdRef = useRef<string | null>(null);
+  const lastPosRef = useRef<{ lat: number; lng: number; accuracy: number } | null>(null);
   const activeShiftIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
-    if (!("geolocation" in navigator)) return;
+    const native = isNative();
+    if (!native && !("geolocation" in navigator)) return;
 
     let cancelled = false;
 
@@ -45,20 +51,24 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
       );
     };
 
-    const insertPing = async (shiftId: string, pos: GeolocationPosition) => {
+    const insertPing = async (
+      shiftId: string,
+      pos: { lat: number; lng: number; accuracy: number }
+    ) => {
       const { error } = await supabase.from("shift_locations" as any).insert({
         shift_id: shiftId,
         user_id: userId,
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        accuracy: pos.coords.accuracy,
+        lat: pos.lat,
+        lng: pos.lng,
+        accuracy: pos.accuracy,
       });
       if (error) console.error("[shift-location] ping insert failed", error);
       else
         console.info("[shift-location] ping sent", {
           shiftId,
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
+          lat: pos.lat,
+          lng: pos.lng,
+          native,
         });
     };
 
@@ -67,25 +77,50 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
         insertPing(shiftId, lastPosRef.current);
         return;
       }
+      if (native) return; // Native: warten auf nächsten Watcher-Tick
       navigator.geolocation.getCurrentPosition(
-        (pos) => insertPing(shiftId, pos),
+        (pos) =>
+          insertPing(shiftId, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          }),
         (err) => console.error("[shift-location] ping geolocation failed", err),
         { enableHighAccuracy: true, maximumAge: 60_000, timeout: 15_000 }
       );
     };
 
-    const startWatch = () => {
+    const startWatch = async () => {
+      if (native) {
+        if (nativeWatchIdRef.current) return;
+        nativeWatchIdRef.current = await startNativeBackgroundLocation((loc) => {
+          lastPosRef.current = loc;
+          // Beim ersten nativen Fix auch sofort senden
+          const shiftId = activeShiftIdRef.current;
+          if (shiftId) insertPing(shiftId, loc);
+        });
+        return;
+      }
       if (watchRef.current != null) return;
       watchRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          lastPosRef.current = pos;
+          lastPosRef.current = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          };
         },
         (err) => console.error("[shift-location] watchPosition error", err),
         { enableHighAccuracy: true, maximumAge: 60_000, timeout: 30_000 }
       );
     };
 
-    const stopWatch = () => {
+    const stopWatch = async () => {
+      if (native) {
+        await stopNativeBackgroundLocation(nativeWatchIdRef.current);
+        nativeWatchIdRef.current = null;
+        return;
+      }
       if (watchRef.current != null) {
         navigator.geolocation.clearWatch(watchRef.current);
         watchRef.current = null;
@@ -104,13 +139,13 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
 
       if (!active || !active.location_consent_at || active.location_consent_declined) {
         activeShiftIdRef.current = null;
-        stopWatch();
+        await stopWatch();
         return;
       }
 
       if (activeShiftIdRef.current !== active.id) {
         activeShiftIdRef.current = active.id;
-        startWatch();
+        await startWatch();
         sendPing(active.id);
         return;
       }
