@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import { CalendarClock, Plus, Trash2, MapPin, Clock, Navigation, Shield, ShieldCheck, ShieldAlert, ClipboardList, Shirt, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -33,6 +33,9 @@ type Shift = {
   location_consent_declined: boolean;
   start_location_lat: number | null; start_location_lng: number | null;
   end_location_lat: number | null; end_location_lng: number | null;
+  service_type: "security" | "cleaning";
+  assignment_status: "pending" | "accepted" | "declined";
+  responded_at: string | null;
 };
 type LocPing = { shift_id: string; lat: number; lng: number; recorded_at: string };
 
@@ -57,6 +60,7 @@ export default function ShiftsPage() {
   const [radius, setRadius] = useState<number | null>(null);
   const [activity, setActivity] = useState("");
   const [requiresLocation, setRequiresLocation] = useState(false);
+  const [serviceType, setServiceType] = useState<"security" | "cleaning">("security");
   const [creating, setCreating] = useState(false);
 
   const refresh = async () => {
@@ -119,12 +123,13 @@ export default function ShiftsPage() {
         geofence_radius_m: radius,
         note: activity.trim() || null,
         requires_location: requiresLocation,
+        service_type: serviceType,
       });
       if (error) throw error;
-      toast.success("Schicht erstellt");
+      toast.success("Bestellung erstellt");
       setOpen(false);
       setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
-      setRadius(null); setActivity(""); setRequiresLocation(false);
+      setRadius(null); setActivity(""); setRequiresLocation(false); setServiceType("security");
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -148,16 +153,26 @@ export default function ShiftsPage() {
     <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <CalendarClock className="w-5 h-5 text-primary" />
-          <h1 className="font-display font-bold text-lg">Schichtplan</h1>
+          <ClipboardList className="w-5 h-5 text-primary" />
+          <h1 className="font-display font-bold text-lg">Bestellungen</h1>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Neue Schicht</Button>
+            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Neue Bestellung</Button>
           </DialogTrigger>
           <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Schicht zuweisen</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Bestellung zuweisen</DialogTitle></DialogHeader>
             <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Art *</Label>
+                <Select value={serviceType} onValueChange={(v) => setServiceType(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="security">🛡️ Security</SelectItem>
+                    <SelectItem value="cleaning">🧹 Reinigung</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Mitarbeiter *</Label>
                 <Select value={empId} onValueChange={setEmpId}>
@@ -243,16 +258,43 @@ export default function ShiftsPage() {
       </div>
 
       {shifts.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Schichten geplant.</Card>
+        <Card className="p-6 text-center text-sm text-muted-foreground">Noch keine Bestellungen.</Card>
       ) : (
         <div className="space-y-2">
           {shifts.map((s) => {
             const active = isActive(s);
             const loc = latestLoc[s.id];
             return (
-              <Card key={s.id} className={`p-3 space-y-1.5 ${active ? "border-primary/60" : ""}`}>
-                <div className="flex items-center gap-2">
+              <Card
+                key={s.id}
+                className={`p-3 space-y-1.5 border-l-4 ${
+                  s.assignment_status === "accepted"
+                    ? "border-l-emerald-500 bg-emerald-500/5"
+                    : s.assignment_status === "declined"
+                    ? "border-l-destructive bg-destructive/5"
+                    : "border-l-muted-foreground/40"
+                } ${active ? "ring-1 ring-primary/40" : ""}`}
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted font-semibold uppercase tracking-wide">
+                    {s.service_type === "cleaning" ? "🧹 Reinigung" : "🛡️ Security"}
+                  </span>
                   <span className="font-medium text-sm flex-1 truncate">{empLabel(s.employee_user_id)}</span>
+                  {s.assignment_status === "accepted" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 font-semibold">
+                      <CheckCircle2 className="w-3 h-3" /> Besetzt
+                    </span>
+                  )}
+                  {s.assignment_status === "declined" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-semibold">
+                      <XCircle className="w-3 h-3" /> Nicht besetzt
+                    </span>
+                  )}
+                  {s.assignment_status === "pending" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-semibold">
+                      <HelpCircle className="w-3 h-3" /> Offen
+                    </span>
+                  )}
                   {active && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">LIVE</span>}
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => remove(s.id)}>
                     <Trash2 className="w-3.5 h-3.5 text-destructive" />

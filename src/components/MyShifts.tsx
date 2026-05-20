@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation, AlertTriangle } from "lucide-react";
+import { CalendarClock, MapPin, Clock, Shield, ShieldAlert, ShieldCheck, Navigation, AlertTriangle, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
@@ -22,6 +22,8 @@ type Shift = {
   requires_location: boolean;
   location_consent_at: string | null;
   location_consent_declined: boolean;
+  service_type: "security" | "cleaning";
+  assignment_status: "pending" | "accepted" | "declined";
 };
 
 // Haversine in metres
@@ -47,7 +49,7 @@ export default function MyShifts({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("shifts")
       .select(
-        "id, date, start_time, end_time, location, address, lat, lng, geofence_radius_m, requires_location, location_consent_at, location_consent_declined"
+        "id, date, start_time, end_time, location, address, lat, lng, geofence_radius_m, requires_location, location_consent_at, location_consent_declined, service_type, assignment_status"
       )
       .eq("employee_user_id", userId)
       .gte("date", today)
@@ -178,6 +180,23 @@ export default function MyShifts({ userId }: { userId: string }) {
     }
   };
 
+  const respondAssignment = async (s: Shift, status: "accepted" | "declined") => {
+    setBusy(s.id);
+    try {
+      const { error } = await supabase
+        .from("shifts")
+        .update({ assignment_status: status, responded_at: new Date().toISOString() })
+        .eq("id", s.id);
+      if (error) throw error;
+      toast.success(status === "accepted" ? "Schicht angenommen" : "Schicht abgelehnt");
+      fetchShifts();
+    } catch (err: any) {
+      toast.error(err.message || "Fehler");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (shifts.length === 0) return null;
 
   return (
@@ -211,11 +230,18 @@ export default function MyShifts({ userId }: { userId: string }) {
             return (
               <div
                 key={s.id}
-                className={`p-3 rounded-lg space-y-1.5 ${
-                  active ? "bg-primary/10 border border-primary/30" : "bg-muted/40"
-                }`}
+                className={`p-3 rounded-lg space-y-1.5 border-l-4 ${
+                  s.assignment_status === "accepted"
+                    ? "border-l-emerald-500"
+                    : s.assignment_status === "declined"
+                    ? "border-l-destructive opacity-70"
+                    : "border-l-amber-500"
+                } ${active ? "bg-primary/10 border-y border-r border-primary/30" : "bg-muted/40"}`}
               >
-                <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="flex items-center gap-2 flex-wrap text-sm font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-background/60 font-semibold uppercase tracking-wide">
+                    {s.service_type === "cleaning" ? "🧹 Reinigung" : "🛡️ Security"}
+                  </span>
                   <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                   {format(parseISO(s.date), "EEE, d. MMM", { locale: de })} ·{" "}
                   {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
@@ -225,6 +251,34 @@ export default function MyShifts({ userId }: { userId: string }) {
                     </span>
                   )}
                 </div>
+                {s.assignment_status === "pending" && (
+                  <Alert className="border-amber-500/60 bg-amber-500/10 p-2.5">
+                    <AlertDescription className="text-xs space-y-2">
+                      <p className="font-medium flex items-center gap-1.5">
+                        <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                        Kannst du diese Schicht übernehmen?
+                      </p>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="h-7 text-xs flex-1" disabled={busy === s.id} onClick={() => respondAssignment(s, "accepted")}>
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> Annehmen
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs flex-1" disabled={busy === s.id} onClick={() => respondAssignment(s, "declined")}>
+                          <XCircle className="w-3 h-3 mr-1" /> Ablehnen
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {s.assignment_status === "accepted" && (
+                  <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 font-semibold">
+                    <CheckCircle2 className="w-3 h-3" /> Angenommen
+                  </span>
+                )}
+                {s.assignment_status === "declined" && (
+                  <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-semibold">
+                    <XCircle className="w-3 h-3" /> Abgelehnt
+                  </span>
+                )}
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" /> {s.location}
                 </div>
