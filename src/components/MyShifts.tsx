@@ -49,7 +49,7 @@ export default function MyShifts({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("shifts")
       .select(
-        "id, date, start_time, end_time, location, address, lat, lng, geofence_radius_m, requires_location, location_consent_at, location_consent_declined"
+        "id, date, start_time, end_time, location, address, lat, lng, geofence_radius_m, requires_location, location_consent_at, location_consent_declined, service_type, assignment_status"
       )
       .eq("employee_user_id", userId)
       .gte("date", today)
