@@ -123,7 +123,6 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
-        <SosBanner userId={user.id} />
         <div className="flex justify-end">
           <SosButton userId={user.id} />
         </div>
