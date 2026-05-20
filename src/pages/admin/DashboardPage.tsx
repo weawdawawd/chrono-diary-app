@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [shiftsToday, setShiftsToday] = useState(0);
   const [activeNow, setActiveNow] = useState(0);
   const [loadErrors, setLoadErrors] = useState<string[]>([]);
+  const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
