@@ -9,10 +9,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   currentEmail?: string;
+  controlledOpen?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export default function AccountSettingsDialog({ currentEmail }: Props) {
-  const [open, setOpen] = useState(false);
+export default function AccountSettingsDialog({ currentEmail, controlledOpen, onOpenChange, hideTrigger }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [email, setEmail] = useState(currentEmail ?? "");
   const [password, setPassword] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -51,11 +56,13 @@ export default function AccountSettingsDialog({ currentEmail }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Konto">
-          <UserCog className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Konto">
+            <UserCog className="w-4 h-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">

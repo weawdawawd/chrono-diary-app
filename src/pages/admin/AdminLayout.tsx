@@ -4,12 +4,9 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 import BrandLogo from "@/components/BrandLogo";
-import AccountSettingsDialog from "@/components/admin/AccountSettingsDialog";
+import AdminUserMenu from "@/components/admin/AdminUserMenu";
 
 export default function AdminLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -57,11 +54,7 @@ export default function AdminLayout() {
             <div className="flex-1 min-w-0">
               <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
             </div>
-            <AccountSettingsDialog currentEmail={user.email} />
-            <DarkModeToggle />
-            <Button variant="ghost" size="icon" onClick={signOut} aria-label="Abmelden" className="h-9 w-9">
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <AdminUserMenu email={user.email} onSignOut={signOut} />
           </header>
           <div className="h-[2px] bg-gradient-to-r from-transparent via-accent to-brand-red opacity-70" />
           <main className="flex-1 overflow-auto">
