@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, ChevronLeft, FileText, FileSpreadsheet, Eye,
-  MapPin, Clock, Coffee, ShieldCheck,
+  MapPin, Clock, Coffee, ShieldCheck, Phone,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
@@ -15,7 +15,7 @@ import { calculateDurationMinutes } from "@/lib/types";
 import { exportToPDF } from "@/lib/exportPDF";
 import { exportToCSV } from "@/lib/exportCSV";
 
-type Profile = { user_id: string; email: string | null; display_name: string | null };
+type Profile = { user_id: string; email: string | null; display_name: string | null; phone: string | null };
 type WorkEntry = Tables<"work_entries">;
 
 const entryMinutes = (e: WorkEntry) => {
@@ -33,7 +33,7 @@ export default function EmployeesPage() {
   useEffect(() => {
     (async () => {
       const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
-        supabase.from("profiles").select("user_id, email, display_name"),
+        supabase.from("profiles").select("user_id, email, display_name, phone"),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
       ]);
