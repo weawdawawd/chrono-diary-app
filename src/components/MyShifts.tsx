@@ -381,10 +381,10 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" className="h-7 text-xs" disabled={busy === s.id} onClick={() => accept(s)}>
-                          Akzeptieren
+                          {t("Akzeptieren")}
                         </Button>
                         <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy === s.id} onClick={() => decline(s)}>
-                          Ablehnen
+                          {t("Ablehnen")}
                         </Button>
                       </div>
                     </AlertDescription>
@@ -393,7 +393,7 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
 
                 {active && accepted && (
                   <p className="text-[11px] text-muted-foreground italic">
-                    Live-Standort wird an deinen Admin gesendet. App geöffnet lassen.
+                    {t("Live-Standort wird an deinen Admin gesendet. App geöffnet lassen.")}
                   </p>
                 )}
               </div>
