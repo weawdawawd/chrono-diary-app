@@ -123,12 +123,13 @@ export default function ShiftsPage() {
         geofence_radius_m: radius,
         note: activity.trim() || null,
         requires_location: requiresLocation,
+        service_type: serviceType,
       });
       if (error) throw error;
-      toast.success("Schicht erstellt");
+      toast.success("Bestellung erstellt");
       setOpen(false);
       setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
-      setRadius(null); setActivity(""); setRequiresLocation(false);
+      setRadius(null); setActivity(""); setRequiresLocation(false); setServiceType("security");
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
