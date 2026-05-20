@@ -23,7 +23,7 @@ type Shift = {
   location_consent_at: string | null;
   location_consent_declined: boolean;
   service_type: "security" | "cleaning";
-  assignment_status: "pending" | "accepted" | "declined";
+  assignment_status: "pending" | "accepted" | "declined" | "cancelled";
 };
 
 // Haversine in metres
