@@ -1,80 +1,52 @@
-## Ziel
+# Umsetzungsplan – 6 Features
 
-Vier neue Features für das Schicht- & Standortsystem:
+## 1. Neue Rolle "Objektleiter"
 
-1. **Geofence pro Objekt** — Admin zeichnet auf der Karte einen Radius/Polygon um jedes Objekt
-2. **Adresse in Schicht** — Bei Schicht-Einteilung wird auch die Adresse des Objekts mitgeteilt
-3. **Start- & End-Standort** — Beim Akzeptieren Start-Position speichern, beim Schicht-Ende automatisch End-Position speichern (live-Tracking bleibt wie bisher)
-4. **SOS-Notruf** — Mitarbeiter löst Notruf aus → Admin + alle Kollegen mit aktiver Schicht im 1 km Radius werden alarmiert
+**Datenbank-Migration:**
+- `app_role` Enum um `'objektleiter'` erweitern
+- RLS-Policies anpassen, damit Objektleiter Schichten erstellen darf (INSERT/UPDATE/SELECT/DELETE auf `shifts`), aber **keinen** Zugriff auf `work_entries` anderer hat
+- Bestehende Admin-Policies bleiben unverändert
+- Neue Helper-Funktion `is_planner(_user_id)` = `is_admin OR has_role(objektleiter)` für Schicht-Policies
 
----
+**Admin-UI (`EmployeesPage`):**
+- Pro Mitarbeiter Dropdown: Security / Objektleiter / Admin
+- Speichert Rolle in `user_roles`
 
-## 1. Datenbank-Änderungen (Migration)
+## 2. Objektleiter-Ansicht
 
-**`global_locations` erweitern:**
-- `address` text — Adresse des Objekts
-- `lat`, `lng` double precision — Koordinaten (für Geofence-Mittelpunkt)
-- `geofence_radius_m` integer default 200 — Radius in Metern (0 = kein Geofence)
+- Objektleiter loggt sich ein wie normaler Mitarbeiter
+- In `Index.tsx`: wenn `role === 'objektleiter'` → zusätzlicher Tab/Bereich "Schicht-Einteilung" sichtbar
+- Wiederverwendung der bestehenden `ShiftsPage`-Logik in einer neuen Komponente `PlannerView`, **ohne** Zugriff auf Mitarbeiter-Stunden/Statistik
+- Mitarbeiter-Bereich (eigene Stunden, eigene Schichten) bleibt erhalten
 
-**`shifts` erweitern:**
-- `address` text — Adresse-Snapshot beim Erstellen
-- `lat`, `lng` double precision — Objekt-Koordinaten (für Geofence-Check & SOS-Radius)
-- `geofence_radius_m` integer — Geofence-Snapshot
-- `start_location_lat/lng` + `start_location_at` — Erster Standort beim Akzeptieren
-- `end_location_lat/lng` + `end_location_at` — Letzter Standort nach Schichtende
+## 3. SOS-Weiterleitung an Kollegen im 1 km
 
-**Neue Tabelle `sos_alerts`:**
-- `user_id`, `shift_id` (nullable), `lat`, `lng`, `message` text, `resolved_at`, `created_at`
-- RLS: Mitarbeiter inserten eigene; Admins sehen alle; Mitarbeiter sehen Alerts im 1 km Radius über RPC
+- `useUserRole` Hook nutzen, um `SosBanner` in `Index.tsx` für **alle** eingeloggten Mitarbeiter zu rendern (aktuell evtl. nur an einer Stelle)
+- Realtime-Channel sicherstellen (`postgres_changes` auf `sos_alerts` für `authenticated` Role)
+- RLS auf `sos_alerts` ergänzen: SELECT auf nicht-resolved Alerts, damit Realtime-Events Mitarbeiter erreichen — Inhalt wird ohnehin via `get_nearby_active_sos` gefiltert
+- Geolocation-Permission beim ersten Schicht-Start anfordern, damit `getCurrentPosition` zuverlässig funktioniert
 
-**Neue RPC-Funktion `get_nearby_active_sos(user_lat, user_lng)`:**
-- Liefert aktive (nicht resolved) SOS-Alarme innerhalb 1 km für eingeloggte Mitarbeiter mit aktiver Schicht.
+## 4. Objekt-Dropdown in Schicht-Einteilung
 
----
+- In `ShiftsPage` beim Feld "Objekt": `<Select>` mit allen Einträgen aus `global_locations` statt freier Text
+- Auswahl übernimmt automatisch `address`, `lat`, `lng`, `geofence_radius_m` in die neue Schicht
 
-## 2. UI-Änderungen
+## 5. Ledion-Logo im PDF
 
-**`CatalogPage` (Objekte verwalten):**
-- Neue Felder im Formular: Adresse, Koordinaten (mit „Adresse geocoden"-Button via Google Maps Connector), Geofence-Radius-Slider
-- Mini-Karte mit Marker + Kreis zum Visualisieren / Anpassen per Klick
+- `src/lib/exportPDF.ts`: Logo (`@/assets/ledion-logo.png`) als Base64 einbetten via `addImage()` oben links, Titel daneben
 
-**`ShiftsPage`:**
-- Beim Auswählen eines Objekts aus dem Katalog werden Adresse + Koordinaten + Radius automatisch in die Schicht übernommen
-- Anzeige der Adresse in der Schichtliste
+## 6. Schichten als Zeitraum (Von–Bis)
 
-**`MyShifts` (Mitarbeiter):**
-- Adresse wird angezeigt + „Route in Maps öffnen"-Link
-- Bei Akzeptieren: erste Position wird zusätzlich als `start_location_*` gespeichert
-- SOS-Button (groß, rot) — sichtbar während aktiver Schicht
-- Beim Schicht-Ende (Hook erkennt Übergang): letzter bekannter Standort wird als `end_location_*` gespeichert
-
-**`LiveMap` (Admin):**
-- Geofence-Kreise um jedes Objekt mit aktiver Schicht
-- Marker für Start-/End-Positionen pro Schicht
-- SOS-Alarme als pulsierender roter Marker mit Popup + „Erledigt"-Button
-
-**Neuer SOS-Banner global (Mitarbeiter):**
-- Wenn `get_nearby_active_sos` einen Alarm in 1 km liefert → Vollbild-Alert mit Position, Name, „Anrufen"/„Route"-Buttons
+- `ShiftsPage` Formular: zusätzlich Datumsbereich (Von/Bis) + Wochentage-Auswahl (optional alle)
+- Beim Speichern: Schleife über jeden Tag im Bereich → eine Schicht pro Tag mit gleicher Zeit/Objekt/Mitarbeiter
 
 ---
 
-## 3. Technische Details
+## Reihenfolge
 
-- **Geocoding**: Google Maps Platform Connector über Gateway (Geocoding API) — Admin gibt Adresse ein → Koordinaten werden ermittelt
-- **Distanzberechnung**: Haversine direkt in SQL (RPC) für SOS-Radius
-- **SOS-Trigger**: Edge Function `trigger-sos` — fügt Alert ein, könnte später Push/E-Mail an Admin senden
-- **End-Standort**: Im `useLiveLocationDuringShift` Hook erkennen wenn `activeShiftIdRef` von ID zu null wechselt → letzten `lastPosRef` als End-Position speichern
-- **Real-time SOS**: Supabase Realtime auf `sos_alerts` für sofortige Benachrichtigung
-
----
-
-## Reihenfolge der Umsetzung
-
-1. Migration (Schema + RPC + RLS)
-2. Google Maps Connector aktivieren (falls noch nicht)
-3. CatalogPage mit Geofence-Editor
-4. ShiftsPage mit Adress-Übernahme
-5. MyShifts mit Adresse, Start-Standort, SOS-Button
-6. End-Standort-Speicherung im Hook
-7. LiveMap mit Geofence-Kreisen + SOS-Anzeige
-8. Globaler SOS-Banner für Mitarbeiter im Umkreis
+1. Migration (Rolle + Helper + Policies)
+2. EmployeesPage: Rollen-Dropdown
+3. ShiftsPage: Objekt-Dropdown + Zeitraum
+4. PlannerView für Objektleiter + Routing in Index
+5. PDF-Logo
+6. SOS-Banner global einbinden + Realtime prüfen
