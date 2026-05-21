@@ -9,6 +9,9 @@ import {
   MapPin, Clock, Coffee, ShieldCheck, Trash2,
 } from "lucide-react";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
@@ -23,6 +26,13 @@ import { exportToCSV } from "@/lib/exportCSV";
 
 type Profile = { user_id: string; email: string | null; display_name: string | null; phone: string | null };
 type WorkEntry = Tables<"work_entries">;
+type RoleValue = "employee" | "objektleiter" | "admin";
+
+const ROLE_LABEL: Record<RoleValue, string> = {
+  employee: "Security",
+  objektleiter: "Objektleiter",
+  admin: "Admin",
+};
 
 const entryMinutes = (e: WorkEntry) => {
   const m = calculateDurationMinutes(e.start_time, e.end_time);
@@ -31,11 +41,12 @@ const entryMinutes = (e: WorkEntry) => {
 
 export default function EmployeesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [employeeIds, setEmployeeIds] = useState<Set<string>>(new Set());
+  const [roleMap, setRoleMap] = useState<Record<string, RoleValue>>({});
   const [allEntries, setAllEntries] = useState<WorkEntry[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   const loadAll = async () => {
     const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
@@ -44,9 +55,15 @@ export default function EmployeesPage() {
       supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
     ]);
     setProfiles(p ?? []);
-    const empIds = new Set<string>();
-    (r ?? []).forEach((row: any) => { if (row.role === "employee") empIds.add(row.user_id); });
-    setEmployeeIds(empIds);
+    const map: Record<string, RoleValue> = {};
+    (r ?? []).forEach((row: any) => {
+      // höchste Rolle gewinnt
+      const cur = map[row.user_id];
+      if (row.role === "admin") map[row.user_id] = "admin";
+      else if (row.role === "objektleiter" && cur !== "admin") map[row.user_id] = "objektleiter";
+      else if (!cur) map[row.user_id] = "employee";
+    });
+    setRoleMap(map);
     setAllEntries(ent ?? []);
   };
 
@@ -69,13 +86,33 @@ export default function EmployeesPage() {
     }
   };
 
+  const changeRole = async (uid: string, newRole: RoleValue) => {
+    setUpdatingRole(uid);
+    try {
+      const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", uid);
+      if (delErr) throw delErr;
+      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: uid, role: newRole });
+      if (insErr) throw insErr;
+      toast.success(`Rolle geändert: ${ROLE_LABEL[newRole]}`);
+      await loadAll();
+    } catch (e: any) {
+      toast.error(e?.message || "Rolle konnte nicht geändert werden");
+    } finally {
+      setUpdatingRole(null);
+    }
+  };
+
   useEffect(() => {
     loadAll();
   }, []);
 
+  // Mitarbeiter = alle nicht-Admins (Security + Objektleiter)
   const employees = useMemo(
-    () => profiles.filter((p) => employeeIds.has(p.user_id)),
-    [profiles, employeeIds]
+    () => profiles.filter((p) => {
+      const r = roleMap[p.user_id];
+      return r === "employee" || r === "objektleiter";
+    }),
+    [profiles, roleMap]
   );
 
   const employeeStats = useMemo(() => {
@@ -113,6 +150,7 @@ export default function EmployeesPage() {
 
     const empProfile = profiles.find((p) => p.user_id === selectedEmployee);
     const empPhone = empProfile?.phone;
+    const empRole = roleMap[selectedEmployee] ?? "employee";
     return (
       <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
         <div className="flex items-center gap-2">
@@ -122,7 +160,7 @@ export default function EmployeesPage() {
           <div className="flex-1 min-w-0">
             <h1 className="font-display font-bold text-lg leading-tight truncate">{empName}</h1>
             <p className="text-[11px] text-muted-foreground">
-              Nur-Lese-Ansicht · {entries.length} Einträge{empPhone ? ` · ${empPhone}` : ""}
+              {ROLE_LABEL[empRole]} · {entries.length} Einträge{empPhone ? ` · ${empPhone}` : ""}
             </p>
           </div>
           <AlertDialog>
@@ -150,6 +188,22 @@ export default function EmployeesPage() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <Card className="p-3 flex items-center gap-3">
+          <div className="text-xs text-muted-foreground shrink-0">Rolle</div>
+          <Select
+            value={empRole}
+            onValueChange={(v) => changeRole(selectedEmployee!, v as RoleValue)}
+            disabled={updatingRole === selectedEmployee}
+          >
+            <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="employee">🛡️ Security</SelectItem>
+              <SelectItem value="objektleiter">📋 Objektleiter</SelectItem>
+              <SelectItem value="admin">👑 Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </Card>
 
         <Card className="p-4">
           <div className="flex items-center justify-between">
@@ -247,6 +301,7 @@ export default function EmployeesPage() {
           {employees.map((emp) => {
             const stats = employeeStats.get(emp.user_id) ?? { count: 0, minutes: 0 };
             const empName = emp.display_name || emp.email || "Mitarbeiter";
+            const role = roleMap[emp.user_id] ?? "employee";
             return (
               <div
                 key={emp.user_id}
@@ -254,19 +309,37 @@ export default function EmployeesPage() {
               >
                 <button
                   onClick={() => setSelectedEmployee(emp.user_id)}
-                  className="flex-1 flex items-center gap-3 text-left min-w-0"
+                  className="flex items-center gap-3 text-left min-w-0 flex-1"
                 >
                   <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
                     {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{empName}</div>
+                    <div className="font-medium text-sm truncate flex items-center gap-1.5">
+                      {empName}
+                      {role === "objektleiter" && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">OL</span>
+                      )}
+                    </div>
                     <div className="text-[11px] text-muted-foreground truncate">
                       {stats.count} Einträge · {Math.floor(stats.minutes / 60)}h {stats.minutes % 60}m
                     </div>
                   </div>
-                  <Eye className="w-4 h-4 text-muted-foreground shrink-0" />
                 </button>
+                <Select
+                  value={role}
+                  onValueChange={(v) => changeRole(emp.user_id, v as RoleValue)}
+                  disabled={updatingRole === emp.user_id}
+                >
+                  <SelectTrigger className="h-8 w-[130px] text-xs shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">🛡️ Security</SelectItem>
+                    <SelectItem value="objektleiter">📋 Objektleiter</SelectItem>
+                    <SelectItem value="admin">👑 Admin</SelectItem>
+                  </SelectContent>
+                </Select>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
