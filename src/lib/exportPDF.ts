@@ -3,8 +3,25 @@ import autoTable from "jspdf-autotable";
 import { WorkEntry, calculateDuration, calculateDurationMinutes } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
+import logoUrl from "@/assets/ledion-logo.png";
 
-export function exportToPDF(entries: WorkEntry[]) {
+async function loadLogoDataUrl(): Promise<string | null> {
+  try {
+    const res = await fetch(logoUrl);
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn("[pdf] Logo konnte nicht geladen werden", e);
+    return null;
+  }
+}
+
+export async function exportToPDF(entries: WorkEntry[]) {
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -19,7 +36,6 @@ export function exportToPDF(entries: WorkEntry[]) {
     ? format(firstDate, "MMMM yyyy", { locale: de })
     : `${format(firstDate, "MMMM yyyy", { locale: de })} – ${format(lastDate, "MMMM yyyy", { locale: de })}`;
 
-  // Total hours calculation
   const totalMinutes = sorted.reduce(
     (sum, e) => sum + calculateDurationMinutes(e.start_time, e.end_time),
     0
@@ -28,20 +44,39 @@ export function exportToPDF(entries: WorkEntry[]) {
   const totalM = totalMinutes % 60;
   const totalStr = `${totalH}h ${totalM.toString().padStart(2, "0")}m`;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("Arbeitszeitnachweis", 14, 20);
+  // Logo oben links
+  const logoData = await loadLogoDataUrl();
+  let textX = 14;
+  if (logoData) {
+    try {
+      doc.addImage(logoData, "PNG", 14, 10, 18, 18);
+      textX = 36;
+    } catch (e) {
+      console.warn("[pdf] addImage fehlgeschlagen", e);
+    }
+  }
 
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("LEDION SECURITY", textX, 17);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(subtitle, 14, 28);
+  doc.text("Arbeitszeitnachweis", textX, 23);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(subtitle, 14, 34);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text(`Gesamtstunden: ${totalStr}  |  ${sorted.length} Eintraege  |  ${new Set(sorted.map(e => e.location)).size} Orte`, 14, 34);
+  doc.setFontSize(9);
+  doc.text(
+    `Gesamtstunden: ${totalStr}  |  ${sorted.length} Eintraege  |  ${new Set(sorted.map((e) => e.location)).size} Orte`,
+    14,
+    40
+  );
 
   autoTable(doc, {
-    startY: 40,
+    startY: 46,
     head: [["Datum", "Von", "Bis", "Dauer", "Ort", "Taetigkeit"]],
     body: sorted.map((e) => [
       format(parseISO(e.date), "dd.MM.yyyy"),

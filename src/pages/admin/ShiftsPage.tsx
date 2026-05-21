@@ -53,8 +53,11 @@ export default function ShiftsPage() {
   const [open, setOpen] = useState(false);
   const [empId, setEmpId] = useState<string>("");
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState<string>("");
+  const [isRange, setIsRange] = useState(false);
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("16:00");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState<number | null>(null);
@@ -82,7 +85,7 @@ export default function ShiftsPage() {
     ]);
     setProfiles(p ?? []);
     const empIds = new Set<string>();
-    (r ?? []).forEach((row: any) => { if (row.role === "employee") empIds.add(row.user_id); });
+    (r ?? []).forEach((row: any) => { if (row.role === "employee" || row.role === "objektleiter") empIds.add(row.user_id); });
     setEmployeeIds(empIds);
     setShifts((s ?? []) as Shift[]);
     const map: Record<string, LocPing> = {};
@@ -144,11 +147,18 @@ export default function ShiftsPage() {
     });
   }, [shifts, search, filterStatus, filterService, filterEmployee, profiles]);
 
-  // Wenn Name eines bekannten Objekts gewählt wird → Adresse/Koords/Radius übernehmen
-  const onLocationChange = (val: string) => {
-    setLocation(val);
-    const match = globalLocations.find((g) => g.name.toLowerCase() === val.toLowerCase());
+  // Objekt aus dem Katalog wählen → Adresse/Koords/Radius übernehmen
+  const onSelectGlobalLocation = (id: string) => {
+    setSelectedLocationId(id);
+    if (id === "__custom") {
+      setLocation("");
+      setAddress("");
+      setLat(null); setLng(null); setRadius(null);
+      return;
+    }
+    const match = globalLocations.find((g) => g.id === id);
     if (match) {
+      setLocation(match.name);
       setAddress(match.address ?? "");
       setLat(match.lat);
       setLng(match.lng);
@@ -160,12 +170,20 @@ export default function ShiftsPage() {
     if (!user) return;
     if (!empId || !location.trim()) { toast.error("Mitarbeiter und Objekt erforderlich"); return; }
     if (end <= start) { toast.error("Endzeit muss nach Startzeit sein"); return; }
+    if (isRange && endDate && endDate < date) { toast.error("Bis-Datum muss nach Von-Datum liegen"); return; }
     setCreating(true);
     try {
-      const { error } = await supabase.from("shifts").insert({
+      // Daten-Liste bauen
+      const dates: string[] = [];
+      const startD = new Date(date + "T00:00:00");
+      const stopD = isRange && endDate ? new Date(endDate + "T00:00:00") : startD;
+      for (let d = new Date(startD); d <= stopD; d.setDate(d.getDate() + 1)) {
+        dates.push(d.toISOString().slice(0, 10));
+      }
+      const rows = dates.map((d) => ({
         employee_user_id: empId,
         created_by: user.id,
-        date, start_time: start, end_time: end,
+        date: d, start_time: start, end_time: end,
         location: location.trim(),
         address: address.trim() || null,
         lat, lng,
@@ -173,12 +191,14 @@ export default function ShiftsPage() {
         note: activity.trim() || null,
         requires_location: requiresLocation,
         service_type: serviceType,
-      });
+      }));
+      const { error } = await supabase.from("shifts").insert(rows);
       if (error) throw error;
-      toast.success("Bestellung erstellt");
+      toast.success(rows.length > 1 ? `${rows.length} Schichten erstellt` : "Bestellung erstellt");
       setOpen(false);
       setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
       setRadius(null); setActivity(""); setRequiresLocation(false); setServiceType("security");
+      setSelectedLocationId(""); setIsRange(false); setEndDate("");
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
@@ -257,9 +277,21 @@ export default function ShiftsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Datum *</Label>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <div className="flex items-center justify-between rounded-lg border border-border p-2">
+                <Label className="text-xs">Mehrere Tage (Zeitraum)</Label>
+                <Switch checked={isRange} onCheckedChange={(v) => { setIsRange(v); if (!v) setEndDate(""); }} />
+              </div>
+              <div className={isRange ? "grid grid-cols-2 gap-2" : "space-y-1.5"}>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{isRange ? "Von *" : "Datum *"}</Label>
+                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </div>
+                {isRange && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Bis *</Label>
+                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={date} />
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
@@ -272,16 +304,27 @@ export default function ShiftsPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Objekt / Ort *</Label>
-                <Input
-                  list="shift-locations"
-                  value={location}
-                  onChange={(e) => onLocationChange(e.target.value)}
-                  placeholder="z.B. Filiale Hauptstraße 12"
-                />
-                <datalist id="shift-locations">
-                  {locationSuggestions.map((n) => <option key={n} value={n} />)}
-                </datalist>
+                <Label className="text-xs">Objekt *</Label>
+                <Select value={selectedLocationId} onValueChange={onSelectGlobalLocation}>
+                  <SelectTrigger><SelectValue placeholder="Objekt wählen…" /></SelectTrigger>
+                  <SelectContent>
+                    {globalLocations.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <span className="flex items-center gap-1.5">
+                          <Building2 className="w-3 h-3" /> {g.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__custom">+ Anderes Objekt (frei eingeben)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {selectedLocationId === "__custom" && (
+                  <Input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="z.B. Filiale Hauptstraße 12"
+                  />
+                )}
                 {address && (
                   <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-2.5 h-2.5" /> {address}

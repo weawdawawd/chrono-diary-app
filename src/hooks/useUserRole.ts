@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "employee";
+export type AppRole = "admin" | "employee" | "objektleiter";
 
 type RoleError = {
   message: string;
@@ -32,7 +32,6 @@ export function useUserRole(userId: string | undefined) {
       return;
     }
 
-    console.info("[admin-auth] Rollenabfrage gestartet", { userId, retryNonce });
     setState({ role: null, loading: true, error: null, loadedUserId: null });
 
     (async () => {
@@ -60,8 +59,9 @@ export function useUserRole(userId: string | undefined) {
         }
 
         const roles = (data ?? []).map((r) => r.role as AppRole);
-        const resolvedRole: AppRole = roles.includes("admin") ? "admin" : "employee";
-        console.info("[admin-auth] Rollenabfrage erfolgreich", { userId, roles, resolvedRole });
+        let resolvedRole: AppRole = "employee";
+        if (roles.includes("admin")) resolvedRole = "admin";
+        else if (roles.includes("objektleiter")) resolvedRole = "objektleiter";
         setState({ role: resolvedRole, loading: false, error: null, loadedUserId: userId });
       } catch (err: any) {
         if (cancelled) return;
@@ -87,5 +87,13 @@ export function useUserRole(userId: string | undefined) {
   const loading = state.loading || (!!userId && state.loadedUserId !== userId && !state.error);
   const retry = () => setRetryNonce((value) => value + 1);
 
-  return { role: state.role, isAdmin: state.role === "admin", loading, error: state.error, retry };
+  return {
+    role: state.role,
+    isAdmin: state.role === "admin",
+    isObjektleiter: state.role === "objektleiter",
+    isPlanner: state.role === "admin" || state.role === "objektleiter",
+    loading,
+    error: state.error,
+    retry,
+  };
 }
