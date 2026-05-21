@@ -14,7 +14,7 @@ import MonthlyComparisonChart from "@/components/MonthlyComparisonChart";
 import WorkCalendar from "@/components/WorkCalendar";
 import MonthFilter from "@/components/MonthFilter";
 import { Navigate } from "react-router-dom";
-import { Briefcase } from "lucide-react";
+import { Briefcase, ClipboardList, User } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import HeaderMenu from "@/components/HeaderMenu";
 import AuthPage from "@/pages/Auth";
@@ -22,16 +22,17 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import MyShifts from "@/components/MyShifts";
-import MyShiftsCalendar from "@/components/MyShiftsCalendar";
 import SosButton from "@/components/SosButton";
+import SosBanner from "@/components/SosBanner";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ShiftsPage from "@/pages/admin/ShiftsPage";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isAdmin, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
+  const { isAdmin, isObjektleiter, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
 
-  // Only run employee-only data hooks when we know the user is NOT an admin
   const employeeId = !roleLoading && !roleError && user && !isAdmin ? user.id : undefined;
   const { entries, loading: entriesLoading, addEntry, deleteEntry, deleteEntriesByDateRange, editEntry } = useWorkEntries(employeeId);
   const savedLocations = useSavedLocations(employeeId);
@@ -71,7 +72,7 @@ const Index = () => {
       <AdminAuthDebug
         email={user?.email}
         userId={user?.id}
-        message="Die Rolle konnte nicht aus user_roles geladen werden. Dadurch kann die Admin-Weiterleitung nicht sicher geprüft werden."
+        message="Die Rolle konnte nicht aus user_roles geladen werden."
         code={roleError.code}
         details={roleError.details || roleError.message}
         onRetry={retryRole}
@@ -92,14 +93,64 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
-  }
+  if (!user) return <AuthPage />;
 
   if (isAdmin) {
-    console.info("[admin-auth] Admin erkannt, Weiterleitung nach /admin", { userId: user.id, email: user.email });
     return <Navigate to="/admin" replace />;
   }
+
+  const employeeView = (
+    <>
+      <div className="flex justify-end">
+        <SosButton userId={user.id} />
+      </div>
+      <MyShifts userId={user.id} mode="today-consent" />
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+        {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
+      </motion.div>
+
+      {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
+      {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
+      {entries.length > 0 && <WorkCalendar entries={entries} />}
+
+      {entries.length > 0 && (
+        <MonthFilter
+          month={filterMonth || new Date()}
+          isAll={!filterMonth}
+          onPrev={() => {
+            const m = filterMonth || new Date();
+            setFilterMonth(new Date(m.getFullYear(), m.getMonth() - 1, 1));
+          }}
+          onNext={() => {
+            const m = filterMonth || new Date();
+            setFilterMonth(new Date(m.getFullYear(), m.getMonth() + 1, 1));
+          }}
+          onReset={() => setFilterMonth(null)}
+        />
+      )}
+
+      {entries.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Ort oder Tätigkeit suchen…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm"
+          />
+        </div>
+      )}
+
+      <WorkEntryForm onAdd={(entry) => { addEntry(entry); upsertActivity(entry.description); }} savedLocations={savedLocations} projects={projects} savedActivities={savedActivities} />
+
+      {entriesLoading ? (
+        <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
+      ) : (
+        <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} projects={projects} onBulkDelete={deleteEntriesByDateRange} />
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +158,9 @@ const Index = () => {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <BrandLogo size={40} showText textClassName="text-[15px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-muted-foreground truncate text-right">{user.email}</p>
+            <p className="text-[11px] text-muted-foreground truncate text-right">
+              {user.email}{isObjektleiter && " · Objektleiter"}
+            </p>
           </div>
           <HeaderMenu
             email={user.email}
@@ -125,56 +178,24 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
-        <div className="flex justify-end">
-          <SosButton userId={user.id} />
-        </div>
-        <MyShifts userId={user.id} mode="today-consent" />
+        {/* SOS-Banner für alle Mitarbeiter sichtbar (1 km Radius) */}
+        <SosBanner userId={user.id} />
 
-
-
-
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-          {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
-        </motion.div>
-
-        {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
-        {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
-        {entries.length > 0 && <WorkCalendar entries={entries} />}
-
-        {entries.length > 0 && (
-          <MonthFilter
-            month={filterMonth || new Date()}
-            isAll={!filterMonth}
-            onPrev={() => {
-              const m = filterMonth || new Date();
-              setFilterMonth(new Date(m.getFullYear(), m.getMonth() - 1, 1));
-            }}
-            onNext={() => {
-              const m = filterMonth || new Date();
-              setFilterMonth(new Date(m.getFullYear(), m.getMonth() + 1, 1));
-            }}
-            onReset={() => setFilterMonth(null)}
-          />
-        )}
-
-        {entries.length > 0 && (
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Ort oder Tätigkeit suchen…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-sm"
-            />
-          </div>
-        )}
-
-        <WorkEntryForm onAdd={(entry) => { addEntry(entry); upsertActivity(entry.description); }} savedLocations={savedLocations} projects={projects} savedActivities={savedActivities} />
-
-        {entriesLoading ? (
-          <div className="text-center py-8 text-muted-foreground animate-pulse text-sm">Einträge laden...</div>
+        {isObjektleiter ? (
+          <Tabs defaultValue="me">
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="me"><User className="w-3.5 h-3.5 mr-1.5" /> Meine Arbeit</TabsTrigger>
+              <TabsTrigger value="planner"><ClipboardList className="w-3.5 h-3.5 mr-1.5" /> Schicht-Einteilung</TabsTrigger>
+            </TabsList>
+            <TabsContent value="me" className="space-y-5 mt-4">
+              {employeeView}
+            </TabsContent>
+            <TabsContent value="planner" className="mt-4 -mx-4">
+              <ShiftsPage />
+            </TabsContent>
+          </Tabs>
         ) : (
-          <WorkEntryList entries={filteredEntries} onDelete={deleteEntry} onEdit={editEntry} onDuplicate={addEntry} projects={projects} onBulkDelete={deleteEntriesByDateRange} />
+          employeeView
         )}
       </main>
     </div>
