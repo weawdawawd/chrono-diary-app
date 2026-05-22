@@ -263,11 +263,18 @@ function ControlledExport({ open, onOpenChange, entries }: { open: boolean; onOp
     return entries.filter((e) => (!fromDate || e.date >= fromDate) && (!toDate || e.date <= toDate));
   })();
 
-  const doExport = (t: "pdf" | "csv") => {
-    if (!filtered.length) return;
-    t === "pdf" ? exportToPDF(filtered) : exportToCSV(filtered);
-    onOpenChange(false);
+  const doExport = async (t: "pdf" | "csv") => {
+    if (!filtered.length) { toast.error("Keine Einträge im gewählten Zeitraum"); return; }
+    try {
+      if (t === "pdf") await exportToPDF(filtered);
+      else exportToCSV(filtered);
+      onOpenChange(false);
+    } catch (err: any) {
+      console.error("[pdf] export failed", err);
+      toast.error(err?.message || "Export fehlgeschlagen");
+    }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
