@@ -41,13 +41,20 @@ export default function ExportDialog({ entries }: Props) {
     });
   };
 
-  const handleExport = (type: "pdf" | "csv") => {
+  const handleExport = async (type: "pdf" | "csv") => {
     const filtered = getFilteredEntries();
     if (filtered.length === 0) return;
-    if (type === "pdf") exportToPDF(filtered);
-    else exportToCSV(filtered);
-    setOpen(false);
+    try {
+      if (type === "pdf") await exportToPDF(filtered);
+      else exportToCSV(filtered);
+      setOpen(false);
+    } catch (err: any) {
+      console.error("[pdf] export failed", err);
+      const { toast } = await import("sonner");
+      toast.error(err?.message || "Export fehlgeschlagen");
+    }
   };
+
 
   const filtered = getFilteredEntries();
 
