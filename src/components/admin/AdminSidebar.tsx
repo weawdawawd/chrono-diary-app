@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList } from "lucide-react";
+import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList, BookText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
