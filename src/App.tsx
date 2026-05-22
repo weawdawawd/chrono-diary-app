@@ -13,6 +13,8 @@ import EmployeesPage from "./pages/admin/EmployeesPage";
 import InvitationsPage from "./pages/admin/InvitationsPage";
 import ShiftsPage from "./pages/admin/ShiftsPage";
 import CatalogPage from "./pages/admin/CatalogPage";
+import LogbookPage from "./pages/admin/LogbookPage";
+
 import { LanguageProvider } from "@/lib/i18n";
 
 const queryClient = new QueryClient();
