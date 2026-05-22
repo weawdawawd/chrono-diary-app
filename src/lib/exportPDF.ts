@@ -22,8 +22,12 @@ async function loadLogoDataUrl(): Promise<string | null> {
 }
 
 export async function exportToPDF(entries: WorkEntry[]) {
+  if (!entries || entries.length === 0) {
+    throw new Error("Keine Einträge zum Exportieren.");
+  }
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+
 
   const dates = sorted.map((e) => parseISO(e.date));
   const firstDate = dates[0];
