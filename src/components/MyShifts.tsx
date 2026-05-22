@@ -398,6 +398,19 @@ export default function MyShifts({ userId, mode = "all" }: { userId: string; mod
                     {t("Live-Standort wird an deinen Admin gesendet. App geöffnet lassen.")}
                   </p>
                 )}
+
+                {s.assignment_status === "accepted" && (
+                  <div className="pt-2">
+                    <GuardLog
+                      locationName={s.location}
+                      shiftId={s.id}
+                      userId={userId}
+                      canWrite
+                      compact
+                    />
+                  </div>
+                )}
+
               </div>
             );
           })}
