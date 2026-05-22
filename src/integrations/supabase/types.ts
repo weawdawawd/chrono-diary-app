@@ -68,6 +68,33 @@ export type Database = {
         }
         Relationships: []
       }
+      guard_log_entries: {
+        Row: {
+          author_user_id: string
+          content: string
+          created_at: string
+          id: string
+          location_name: string
+          shift_id: string | null
+        }
+        Insert: {
+          author_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          location_name: string
+          shift_id?: string | null
+        }
+        Update: {
+          author_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          location_name?: string
+          shift_id?: string | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           created_at: string
