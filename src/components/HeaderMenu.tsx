@@ -124,7 +124,7 @@ export default function HeaderMenu({
           onDeleteProject={onDeleteProject}
         />
         <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
-        <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
+
       </div>
 
       <Sheet open={openShifts} onOpenChange={setOpenShifts}>
