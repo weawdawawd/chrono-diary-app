@@ -19,6 +19,8 @@ const items = [
   { title: "Einladungen", url: "/admin/invitations", icon: Link2 },
   { title: "Bestellungen", url: "/admin/shifts", icon: ClipboardList },
   { title: "Objekte & Tätigkeiten", url: "/admin/catalog", icon: Library },
+  { title: "Wachbuch", url: "/admin/logbook", icon: BookText },
+
 ];
 
 export function AdminSidebar() {
