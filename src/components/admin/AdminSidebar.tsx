@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList } from "lucide-react";
+import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList, BookText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,8 @@ const items = [
   { title: "Einladungen", url: "/admin/invitations", icon: Link2 },
   { title: "Bestellungen", url: "/admin/shifts", icon: ClipboardList },
   { title: "Objekte & Tätigkeiten", url: "/admin/catalog", icon: Library },
+  { title: "Wachbuch", url: "/admin/logbook", icon: BookText },
+
 ];
 
 export function AdminSidebar() {

@@ -228,9 +228,13 @@ export default function EmployeesPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" disabled={entries.length === 0} onClick={() => exportToPDF(entries)}>
+          <Button variant="outline" size="sm" disabled={entries.length === 0} onClick={async () => {
+            try { await exportToPDF(entries); }
+            catch (e: any) { console.error("[pdf] export failed", e); toast.error(e?.message || "PDF-Export fehlgeschlagen"); }
+          }}>
             <FileText className="w-3.5 h-3.5 mr-1.5" /> PDF drucken
           </Button>
+
           <Button variant="outline" size="sm" disabled={entries.length === 0} onClick={() => exportToCSV(entries)}>
             <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" /> CSV
           </Button>
