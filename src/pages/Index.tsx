@@ -28,6 +28,7 @@ import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ShiftsPage from "@/pages/admin/ShiftsPage";
+import ShiftClock from "@/components/ShiftClock";
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -104,6 +105,7 @@ const Index = () => {
       <div className="flex justify-end">
         <SosButton userId={user.id} />
       </div>
+      <ShiftClock userId={user.id} />
       <MyShifts userId={user.id} mode="today-consent" />
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
