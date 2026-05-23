@@ -76,6 +76,7 @@ export type Database = {
           id: string
           location_name: string
           shift_id: string | null
+          shift_session_id: string | null
         }
         Insert: {
           author_user_id: string
@@ -84,6 +85,7 @@ export type Database = {
           id?: string
           location_name: string
           shift_id?: string | null
+          shift_session_id?: string | null
         }
         Update: {
           author_user_id?: string
@@ -92,8 +94,17 @@ export type Database = {
           id?: string
           location_name?: string
           shift_id?: string | null
+          shift_session_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guard_log_entries_shift_session_id_fkey"
+            columns: ["shift_session_id"]
+            isOneToOne: false
+            referencedRelation: "shift_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
@@ -267,6 +278,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shift_locations_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_sessions: {
+        Row: {
+          created_at: string
+          end_lat: number | null
+          end_lng: number | null
+          end_time: string | null
+          id: string
+          object_location: string
+          shift_id: string | null
+          start_lat: number | null
+          start_lng: number | null
+          start_time: string
+          status: Database["public"]["Enums"]["shift_session_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          end_time?: string | null
+          id?: string
+          object_location: string
+          shift_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["shift_session_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          end_time?: string | null
+          id?: string
+          object_location?: string
+          shift_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["shift_session_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_sessions_shift_id_fkey"
             columns: ["shift_id"]
             isOneToOne: false
             referencedRelation: "shifts"
@@ -513,6 +577,7 @@ export type Database = {
       app_role: "admin" | "employee" | "objektleiter"
       assignment_status: "pending" | "accepted" | "declined" | "cancelled"
       service_type: "security" | "cleaning"
+      shift_session_status: "active" | "finished"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -643,6 +708,7 @@ export const Constants = {
       app_role: ["admin", "employee", "objektleiter"],
       assignment_status: ["pending", "accepted", "declined", "cancelled"],
       service_type: ["security", "cleaning"],
+      shift_session_status: ["active", "finished"],
     },
   },
 } as const
