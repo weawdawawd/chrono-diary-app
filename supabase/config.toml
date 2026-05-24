@@ -1,7 +1,9 @@
 project_id = "dfqcturrfbnzlhiaupnw"
 
-[functions.accept-invitation]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.accept-invitation]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
