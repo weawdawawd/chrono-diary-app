@@ -161,7 +161,10 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          incident_at: string | null
+          incident_type: string | null
           location_name: string
+          photo_url: string | null
           shift_id: string | null
           shift_session_id: string | null
         }
@@ -170,7 +173,10 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          incident_at?: string | null
+          incident_type?: string | null
           location_name: string
+          photo_url?: string | null
           shift_id?: string | null
           shift_session_id?: string | null
         }
@@ -179,7 +185,10 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          incident_at?: string | null
+          incident_type?: string | null
           location_name?: string
+          photo_url?: string | null
           shift_id?: string | null
           shift_session_id?: string | null
         }
@@ -341,7 +350,8 @@ export type Database = {
           lat: number
           lng: number
           recorded_at: string
-          shift_id: string
+          shift_id: string | null
+          shift_session_id: string | null
           user_id: string
         }
         Insert: {
@@ -350,7 +360,8 @@ export type Database = {
           lat: number
           lng: number
           recorded_at?: string
-          shift_id: string
+          shift_id?: string | null
+          shift_session_id?: string | null
           user_id: string
         }
         Update: {
@@ -359,7 +370,8 @@ export type Database = {
           lat?: number
           lng?: number
           recorded_at?: string
-          shift_id?: string
+          shift_id?: string | null
+          shift_session_id?: string | null
           user_id?: string
         }
         Relationships: [
