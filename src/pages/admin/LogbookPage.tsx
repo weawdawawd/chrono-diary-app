@@ -55,7 +55,7 @@ export default function LogbookPage() {
       </Card>
 
       {selected && user && (
-        <GuardLog locationName={selected} userId={user.id} canWrite />
+        <GuardLog locationName={selected} userId={user.id} canWrite isPlanner />
       )}
     </div>
   );
