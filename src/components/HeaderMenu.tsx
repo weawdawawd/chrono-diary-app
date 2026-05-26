@@ -76,6 +76,11 @@ export default function HeaderMenu({
               <CalendarClock className="w-4 h-4 mr-2 text-accent" /> {t("Meine Schichten")}
             </DropdownMenuItem>
           )}
+          {userId && (
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenLogbook(true); setOpen(false); }}>
+              <BookText className="w-4 h-4 mr-2 text-accent" /> Wachbuch
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenExport(true); setOpen(false); }} disabled={entries.length === 0}>
             <Download className="w-4 h-4 mr-2 text-accent" /> {t("Export (PDF / CSV)")}
           </DropdownMenuItem>
