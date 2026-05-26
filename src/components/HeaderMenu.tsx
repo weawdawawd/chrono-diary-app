@@ -12,10 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check, BookText } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import MyShifts from "@/components/MyShifts";
 import MyShiftsCalendar from "@/components/MyShiftsCalendar";
+import MyLogbook from "@/components/MyLogbook";
 import type { Project } from "@/hooks/useProjects";
 import type { UserSettings } from "@/hooks/useUserSettings";
 import type { WorkEntry } from "@/lib/types";
