@@ -149,6 +149,21 @@ export default function HeaderMenu({
           )}
         </SheetContent>
       </Sheet>
+
+      <Sheet open={openLogbook} onOpenChange={setOpenLogbook}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="font-display flex items-center gap-2">
+              <BookText className="w-5 h-5 text-primary" /> Wachbuch
+            </SheetTitle>
+          </SheetHeader>
+          {userId && (
+            <div className="pt-4">
+              <MyLogbook userId={userId} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
