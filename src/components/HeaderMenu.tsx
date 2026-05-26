@@ -43,6 +43,7 @@ export default function HeaderMenu({
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
   const [openShifts, setOpenShifts] = useState(false);
+  const [openLogbook, setOpenLogbook] = useState(false);
   const [dark, setDark] = useState(() =>
     typeof window !== "undefined" && document.documentElement.classList.contains("dark")
   );
