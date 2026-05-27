@@ -138,6 +138,7 @@ const Index = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
+            aria-label="Ort oder Tätigkeit suchen"
             placeholder="Ort oder Tätigkeit suchen…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -182,6 +183,7 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        <h1 className="sr-only">Arbeitszeit — Einfache Zeiterfassung</h1>
         {/* SOS-Banner für alle Mitarbeiter sichtbar (1 km Radius) */}
         <SosBanner userId={user.id} />
 
