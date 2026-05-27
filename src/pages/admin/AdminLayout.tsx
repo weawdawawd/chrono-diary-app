@@ -13,6 +13,12 @@ export default function AdminLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
 
+  useEffect(() => {
+    document.title = "Admin — Ledion Arbeitszeit";
+  }, []);
+
+
+
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
