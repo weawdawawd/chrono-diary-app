@@ -182,6 +182,7 @@ const Index = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+        <h1 className="sr-only">Arbeitszeit — Einfache Zeiterfassung</h1>
         {/* SOS-Banner für alle Mitarbeiter sichtbar (1 km Radius) */}
         <SosBanner userId={user.id} />
 
