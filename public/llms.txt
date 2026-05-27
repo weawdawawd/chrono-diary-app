@@ -1,0 +1,9 @@
+# Ledion
+
+> Arbeitszeiterfassung mit Schichtplanung, GPS-Stempeluhr und Wachbuch für Teams.
+
+Ledion hilft Teams, Arbeitszeiten, Orte und Tätigkeiten zuverlässig zu erfassen. Mitarbeiter stempeln per GPS ein und aus, Objektleiter planen Schichten, und das Wachbuch dokumentiert Vorfälle pro Objekt.
+
+## Pages
+
+- [Start](/): Anmeldung und persönliche Zeiterfassung.
