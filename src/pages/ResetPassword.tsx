@@ -18,7 +18,13 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Passwort zurücksetzen — Ledion";
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
+
+
 
     const hash = window.location.hash.replace(/^#/, "");
     const params = new URLSearchParams(hash);
