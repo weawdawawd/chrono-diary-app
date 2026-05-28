@@ -45,23 +45,45 @@ export default function InvitationsPage() {
   const create = async () => {
     if (!user) return;
     if (!newName.trim()) { toast.error("Bitte Name eingeben"); return; }
+    const email = newEmail.trim().toLowerCase();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Bitte gültige E-Mail eingeben"); return;
+    }
     setCreating(true);
     try {
       const { data, error } = await supabase
         .from("invitations")
-        .insert({ created_by: user.id, role: "employee", note: newName.trim() })
+        .insert({
+          created_by: user.id,
+          role: "employee",
+          note: newName.trim(),
+          email: email || null,
+        })
         .select().single();
       if (error) throw error;
       const link = `${window.location.origin}/invite/${data.token}`;
       try { await navigator.clipboard.writeText(link); } catch {}
       toast.success("Link kopiert!", { description: link });
+      if (email) {
+        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "invitation",
+            recipientEmail: email,
+            idempotencyKey: `invitation-${data.id}`,
+            templateData: { name: newName.trim(), inviteUrl: link },
+          },
+        });
+        if (mailErr) toast.error("E-Mail-Versand fehlgeschlagen");
+        else toast.success("Einladungs-E-Mail gesendet");
+      }
       openWhatsApp(link, newName.trim(), newPhone.trim());
-      setNewName(""); setNewPhone(""); setOpen(false);
+      setNewName(""); setNewEmail(""); setNewPhone(""); setOpen(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
     } finally { setCreating(false); }
   };
+
 
   const copyLink = async (token: string) => {
     await navigator.clipboard.writeText(`${window.location.origin}/invite/${token}`);
