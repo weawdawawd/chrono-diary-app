@@ -194,9 +194,37 @@ export default function ShiftsPage() {
         requires_location: requiresLocation,
         service_type: serviceType,
       }));
-      const { error } = await supabase.from("shifts").insert(rows);
+      const { data: created, error } = await supabase
+        .from("shifts").insert(rows).select("id, date, start_time, end_time, location, address, note");
       if (error) throw error;
       toast.success(rows.length > 1 ? `${rows.length} Schichten erstellt` : "Bestellung erstellt");
+
+      // Mitarbeiter per E-Mail benachrichtigen (eine Mail pro Schicht)
+      const emp = profiles.find((p) => p.user_id === empId);
+      const empEmail = emp?.email?.trim();
+      const empName = emp?.display_name || emp?.email || "";
+      if (empEmail && created?.length) {
+        for (const s of created) {
+          const dateLabel = format(parseISO(s.date), "EEEE, d. MMMM yyyy", { locale: de });
+          supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "shift-assignment",
+              recipientEmail: empEmail,
+              idempotencyKey: `shift-assignment-${s.id}`,
+              templateData: {
+                name: empName,
+                date: dateLabel,
+                startTime: s.start_time?.slice(0, 5),
+                endTime: s.end_time?.slice(0, 5),
+                location: s.location,
+                address: s.address ?? undefined,
+                note: s.note ?? undefined,
+              },
+            },
+          }).catch((e) => console.error("[shift-email] failed", e));
+        }
+      }
+
       setOpen(false);
       setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
       setRadius(null); setActivity(""); setRequiresLocation(false); setServiceType("security");

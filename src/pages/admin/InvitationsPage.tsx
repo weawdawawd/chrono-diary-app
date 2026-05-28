@@ -21,8 +21,10 @@ export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [creating, setCreating] = useState(false);
+
 
   const refresh = async () => {
     const { data } = await supabase.from("invitations").select("*").order("created_at", { ascending: false });
@@ -43,23 +45,45 @@ export default function InvitationsPage() {
   const create = async () => {
     if (!user) return;
     if (!newName.trim()) { toast.error("Bitte Name eingeben"); return; }
+    const email = newEmail.trim().toLowerCase();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Bitte gültige E-Mail eingeben"); return;
+    }
     setCreating(true);
     try {
       const { data, error } = await supabase
         .from("invitations")
-        .insert({ created_by: user.id, role: "employee", note: newName.trim() })
+        .insert({
+          created_by: user.id,
+          role: "employee",
+          note: newName.trim(),
+          email: email || null,
+        })
         .select().single();
       if (error) throw error;
       const link = `${window.location.origin}/invite/${data.token}`;
       try { await navigator.clipboard.writeText(link); } catch {}
       toast.success("Link kopiert!", { description: link });
+      if (email) {
+        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "invitation",
+            recipientEmail: email,
+            idempotencyKey: `invitation-${data.id}`,
+            templateData: { name: newName.trim(), inviteUrl: link },
+          },
+        });
+        if (mailErr) toast.error("E-Mail-Versand fehlgeschlagen");
+        else toast.success("Einladungs-E-Mail gesendet");
+      }
       openWhatsApp(link, newName.trim(), newPhone.trim());
-      setNewName(""); setNewPhone(""); setOpen(false);
+      setNewName(""); setNewEmail(""); setNewPhone(""); setOpen(false);
       refresh();
     } catch (err: any) {
       toast.error(err.message || "Fehler");
     } finally { setCreating(false); }
   };
+
 
   const copyLink = async (token: string) => {
     await navigator.clipboard.writeText(`${window.location.origin}/invite/${token}`);
@@ -94,6 +118,11 @@ export default function InvitationsPage() {
                 <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="z.B. Max Mustermann" autoFocus />
               </div>
               <div className="space-y-1.5">
+                <Label className="text-xs">E-Mail (optional, für Einladungs-Mail)</Label>
+                <Input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="max@example.com" type="email" inputMode="email" autoComplete="email" />
+              </div>
+              <div className="space-y-1.5">
+
                 <Label className="text-xs">WhatsApp-Nummer (optional)</Label>
                 <Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="z.B. 491701234567" inputMode="tel" />
                 <p className="text-[11px] text-muted-foreground">
