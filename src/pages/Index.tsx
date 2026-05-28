@@ -25,7 +25,7 @@ import MyShifts from "@/components/MyShifts";
 import SosButton from "@/components/SosButton";
 import SosBanner from "@/components/SosBanner";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
-import { useLiveLocationDuringSession } from "@/hooks/useLiveLocationDuringSession";
+
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ShiftsPage from "@/pages/admin/ShiftsPage";
