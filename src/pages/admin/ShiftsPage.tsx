@@ -177,8 +177,10 @@ export default function ShiftsPage() {
       const dates: string[] = [];
       const startD = new Date(date + "T00:00:00");
       const stopD = isRange && endDate ? new Date(endDate + "T00:00:00") : startD;
+      const fmtLocal = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       for (let d = new Date(startD); d <= stopD; d.setDate(d.getDate() + 1)) {
-        dates.push(d.toISOString().slice(0, 10));
+        dates.push(fmtLocal(d));
       }
       const rows = dates.map((d) => ({
         employee_user_id: empId,
