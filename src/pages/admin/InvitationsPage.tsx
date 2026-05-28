@@ -21,8 +21,10 @@ export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [creating, setCreating] = useState(false);
+
 
   const refresh = async () => {
     const { data } = await supabase.from("invitations").select("*").order("created_at", { ascending: false });
