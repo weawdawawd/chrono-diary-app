@@ -118,6 +118,11 @@ export default function InvitationsPage() {
                 <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="z.B. Max Mustermann" autoFocus />
               </div>
               <div className="space-y-1.5">
+                <Label className="text-xs">E-Mail (optional, für Einladungs-Mail)</Label>
+                <Input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="max@example.com" type="email" inputMode="email" autoComplete="email" />
+              </div>
+              <div className="space-y-1.5">
+
                 <Label className="text-xs">WhatsApp-Nummer (optional)</Label>
                 <Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="z.B. 491701234567" inputMode="tel" />
                 <p className="text-[11px] text-muted-foreground">
