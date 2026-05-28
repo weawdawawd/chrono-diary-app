@@ -42,7 +42,6 @@ const Index = () => {
   const { settings, upsertSettings } = useUserSettings(employeeId);
   const { activities: savedActivities, upsertActivity } = useSavedActivities(employeeId);
   useLiveLocationDuringShift(employeeId);
-  useLiveLocationDuringSession(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
