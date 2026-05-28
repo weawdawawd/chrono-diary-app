@@ -43,8 +43,8 @@ export function useLiveLocationDuringShift(userId: string | undefined) {
 
     const findActiveShift = (shifts: Shift[]): Shift | null => {
       const now = new Date();
-      const today = now.toISOString().slice(0, 10);
-      const t = now.toTimeString().slice(0, 8);
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const t = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
       return (
         shifts.find(
           (s) => s.date === today && s.start_time <= t && s.end_time >= t
