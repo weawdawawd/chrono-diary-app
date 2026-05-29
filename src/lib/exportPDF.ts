@@ -76,33 +76,45 @@ export async function exportToPDF(entries: WorkEntry[]) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.text(
-    `Gesamtstunden: ${totalStr}  |  ${sorted.length} Eintraege  |  ${new Set(sorted.map((e) => e.location)).size} Orte`,
+    `Gesamtstunden: ${totalStr} (${totalDecimal})  |  ${sorted.length} Eintraege  |  ${new Set(sorted.map((e) => e.location)).size} Orte`,
     14,
     40
   );
 
   autoTable(doc, {
     startY: 46,
-    head: [["Datum", "Von", "Bis", "Dauer", "Ort", "Taetigkeit"]],
-    body: sorted.map((e) => [
-      format(parseISO(e.date), "dd.MM.yyyy"),
-      e.start_time.slice(0, 5),
-      e.end_time.slice(0, 5),
-      calculateDuration(e.start_time, e.end_time),
-      e.location,
-      e.description,
-    ]),
-    foot: [["", "", "Gesamt:", totalStr, "", ""]],
+    head: [["Datum", "Von", "Bis", "Pause", "Dauer", "Ort", "Taetigkeit"]],
+    body: sorted.map((e) => {
+      const anyE = e as any;
+      const br = anyE.break_minutes || 0;
+      const pauseStr = br > 0 ? `${br}min${anyE.include_break ? "" : "*"}` : "-";
+      const raw = calculateDurationMinutes(e.start_time, e.end_time);
+      const eff = raw - (anyE.include_break ? br : 0);
+      const h = Math.floor(eff / 60);
+      const m = eff % 60;
+      const dur = `${h}h ${m.toString().padStart(2, "0")}m`;
+      return [
+        format(parseISO(e.date), "dd.MM.yyyy"),
+        e.start_time.slice(0, 5),
+        e.end_time.slice(0, 5),
+        pauseStr,
+        dur,
+        e.location,
+        e.description,
+      ];
+    }),
+    foot: [["", "", "", "Gesamt:", `${totalStr} (${totalDecimal})`, "", ""]],
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [30, 48, 80] },
     footStyles: { fillColor: [240, 240, 240], textColor: [30, 48, 80], fontStyle: "bold" },
     columnStyles: {
-      0: { cellWidth: 24 },
-      1: { cellWidth: 16 },
-      2: { cellWidth: 16 },
-      3: { cellWidth: 18 },
-      4: { cellWidth: 35 },
-      5: { cellWidth: "auto" },
+      0: { cellWidth: 22 },
+      1: { cellWidth: 14 },
+      2: { cellWidth: 14 },
+      3: { cellWidth: 16 },
+      4: { cellWidth: 20 },
+      5: { cellWidth: 32 },
+      6: { cellWidth: "auto" },
     },
   });
 
