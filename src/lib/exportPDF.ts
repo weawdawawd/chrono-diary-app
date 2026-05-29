@@ -40,13 +40,15 @@ export async function exportToPDF(entries: WorkEntry[]) {
     ? format(firstDate, "MMMM yyyy", { locale: de })
     : `${format(firstDate, "MMMM yyyy", { locale: de })} – ${format(lastDate, "MMMM yyyy", { locale: de })}`;
 
-  const totalMinutes = sorted.reduce(
-    (sum, e) => sum + calculateDurationMinutes(e.start_time, e.end_time),
-    0
-  );
+  const totalMinutes = sorted.reduce((sum, e) => {
+    const raw = calculateDurationMinutes(e.start_time, e.end_time);
+    const br = (e as any).include_break ? ((e as any).break_minutes || 0) : 0;
+    return sum + raw - br;
+  }, 0);
   const totalH = Math.floor(totalMinutes / 60);
   const totalM = totalMinutes % 60;
   const totalStr = `${totalH}h ${totalM.toString().padStart(2, "0")}m`;
+  const totalDecimal = (totalMinutes / 60).toFixed(2).replace(".", ",");
 
   // Logo oben links
   const logoData = await loadLogoDataUrl();
