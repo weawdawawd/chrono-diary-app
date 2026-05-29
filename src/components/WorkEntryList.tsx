@@ -173,6 +173,7 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, 
           }, 0);
           const dayH = Math.floor(dayMinutes / 60);
           const dayM = dayMinutes % 60;
+          const dayDecimal = (dayMinutes / 60).toFixed(2).replace(".", ",");
 
           return (
             <motion.div
@@ -191,8 +192,8 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, 
                     {format(parseISO(date), "EEEE, d. MMMM", { locale: de })}
                   </h3>
                 </div>
-                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-                  {dayH}h {dayM.toString().padStart(2, "0")}m
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full" title={`${dayH}h ${dayM.toString().padStart(2, "0")}m`}>
+                  {dayDecimal} Std
                 </span>
               </div>
               <div className="space-y-2">
@@ -300,15 +301,32 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, 
                                         <Pencil className="w-3.5 h-3.5" />
                                       </Button>
                                     )}
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                      onClick={() => onDelete(entry.id)}
-                                      aria-label="Löschen"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                          aria-label="Löschen"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Eintrag löschen?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Dieser Eintrag ({entry.start_time.slice(0,5)}–{entry.end_time.slice(0,5)}, {entry.location}) wird unwiderruflich gelöscht.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => onDelete(entry.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                            Löschen
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 )}
                               </div>

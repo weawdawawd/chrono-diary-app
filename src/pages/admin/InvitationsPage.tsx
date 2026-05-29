@@ -95,6 +95,7 @@ export default function InvitationsPage() {
   };
 
   const remove = async (id: string) => {
+    if (!confirm("Diese Einladung endgültig löschen?")) return;
     await supabase.from("invitations").delete().eq("id", id);
     refresh();
   };
