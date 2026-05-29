@@ -192,8 +192,8 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, 
                     {format(parseISO(date), "EEEE, d. MMMM", { locale: de })}
                   </h3>
                 </div>
-                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-                  {dayH}h {dayM.toString().padStart(2, "0")}m
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full" title={`${dayH}h ${dayM.toString().padStart(2, "0")}m`}>
+                  {dayDecimal} Std
                 </span>
               </div>
               <div className="space-y-2">
