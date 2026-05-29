@@ -173,6 +173,7 @@ export default function WorkEntryList({ entries, onDelete, onEdit, onDuplicate, 
           }, 0);
           const dayH = Math.floor(dayMinutes / 60);
           const dayM = dayMinutes % 60;
+          const dayDecimal = (dayMinutes / 60).toFixed(2).replace(".", ",");
 
           return (
             <motion.div
