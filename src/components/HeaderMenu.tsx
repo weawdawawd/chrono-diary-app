@@ -22,6 +22,7 @@ import type { UserSettings } from "@/hooks/useUserSettings";
 import type { WorkEntry } from "@/lib/types";
 import { useEffect } from "react";
 import { useT, LANGUAGES } from "@/lib/i18n";
+import AvatarUpload from "@/components/AvatarUpload";
 
 interface Props {
   email?: string;
@@ -181,9 +182,9 @@ function SettingsDialogWrapper(props: {
   projects: Project[];
   onAddProject: (n: string, c?: string, col?: string) => Promise<void>;
   onDeleteProject: (id: string) => Promise<void>;
+  userId?: string;
+  email?: string;
 }) {
-  // Re-use SettingsDialog body via a hidden mount trick: render the existing component
-  // by toggling its own internal state through a custom controlled clone.
   return (
     <ControlledSettings {...props} />
   );
