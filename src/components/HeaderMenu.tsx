@@ -129,6 +129,8 @@ export default function HeaderMenu({
           projects={projects}
           onAddProject={onAddProject}
           onDeleteProject={onDeleteProject}
+          userId={userId}
+          email={email}
         />
         <ExportDialogWrapper open={openExport} onOpenChange={setOpenExport} entries={entries} />
 
@@ -203,7 +205,7 @@ import { exportToCSV } from "@/lib/exportCSV";
 
 const PROJECT_COLORS = ["#C9A961","#D62828","#1a1a1a","#3b82f6","#10b981","#f59e0b","#8b5cf6","#ec4899"];
 
-function ControlledSettings({ open, onOpenChange, settings, onSaveSettings, projects, onAddProject, onDeleteProject }: any) {
+function ControlledSettings({ open, onOpenChange, settings, onSaveSettings, projects, onAddProject, onDeleteProject, userId, email }: any) {
   const [weeklyHours, setWeeklyHours] = useState(settings?.weekly_target_hours ?? 40);
   const [newProject, setNewProject] = useState("");
   const [newClient, setNewClient] = useState("");
@@ -216,6 +218,12 @@ function ControlledSettings({ open, onOpenChange, settings, onSaveSettings, proj
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-display">Einstellungen</DialogTitle></DialogHeader>
         <div className="space-y-6 pt-2">
+          {userId && (
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Profilbild</Label>
+              <AvatarUpload userId={userId} fallbackText={email} />
+            </div>
+          )}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Wöchentliche Soll-Stunden</Label>
             <div className="flex gap-2">
