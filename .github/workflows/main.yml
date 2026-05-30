@@ -25,22 +25,29 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build web assets
         run: npm run build
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Verify dist exists
+        run: ls -la dist/
+
+      - name: Sync Capacitor (verbose)
+        run: npx cap sync android --deployment
+        env:
+          CAPACITOR_LOG_LEVEL: debug
 
       - name: Grant execute permission to gradlew
         run: chmod +x ./android/gradlew
 
       - name: Build debug APK
         working-directory: ./android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
