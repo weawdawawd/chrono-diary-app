@@ -24,7 +24,7 @@ import { calculateDurationMinutes } from "@/lib/types";
 import { exportToPDF } from "@/lib/exportPDF";
 import { exportToCSV } from "@/lib/exportCSV";
 
-type Profile = { user_id: string; email: string | null; display_name: string | null; phone: string | null };
+type Profile = { user_id: string; email: string | null; display_name: string | null; phone: string | null; avatar_url: string | null };
 type WorkEntry = Tables<"work_entries">;
 type RoleValue = "employee" | "objektleiter" | "admin";
 
@@ -50,7 +50,7 @@ export default function EmployeesPage() {
 
   const loadAll = async () => {
     const [{ data: p }, { data: r }, { data: ent }] = await Promise.all([
-      supabase.from("profiles").select("user_id, email, display_name, phone"),
+      supabase.from("profiles").select("user_id, email, display_name, phone, avatar_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("work_entries").select("*").order("date", { ascending: false }).order("start_time", { ascending: false }),
     ]);
@@ -157,6 +157,13 @@ export default function EmployeesPage() {
           <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => { setSelectedEmployee(null); setFilterMonth(""); }}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
+          <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-primary shrink-0 overflow-hidden">
+            {empProfile?.avatar_url ? (
+              <img src={empProfile.avatar_url} alt={empName} className="w-full h-full object-cover" />
+            ) : (
+              empName.charAt(0).toUpperCase()
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <h1 className="font-display font-bold text-lg leading-tight truncate">{empName}</h1>
             <p className="text-[11px] text-muted-foreground">
@@ -315,8 +322,12 @@ export default function EmployeesPage() {
                   onClick={() => setSelectedEmployee(emp.user_id)}
                   className="flex items-center gap-3 text-left min-w-0 flex-1"
                 >
-                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
-                    {(emp.display_name || emp.email || "?").charAt(0).toUpperCase()}
+                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center font-semibold text-sm text-primary shrink-0 overflow-hidden">
+                    {emp.avatar_url ? (
+                      <img src={emp.avatar_url} alt={empName} className="w-full h-full object-cover" />
+                    ) : (
+                      (emp.display_name || emp.email || "?").charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate flex items-center gap-1.5">
