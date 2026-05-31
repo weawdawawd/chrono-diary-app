@@ -213,7 +213,7 @@ export default function GuardLog({ locationName, shiftId, userId, canWrite, isPl
 
           {photoPreview ? (
             <div className="relative inline-block">
-              <img src={photoPreview} alt="Vorschau" className="h-20 w-20 object-cover rounded-md border" />
+              <img src={photoPreview} alt="Foto-Vorschau für Wachbuch-Eintrag" className="h-20 w-20 object-cover rounded-md border" />
               <button
                 type="button"
                 onClick={clearPhoto}
@@ -260,7 +260,7 @@ export default function GuardLog({ locationName, shiftId, userId, canWrite, isPl
                     </Badge>
                   )}
                   {e.author_user_id === userId && (
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => remove(e)}>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => remove(e)} aria-label="Wachbuch-Eintrag löschen">
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   )}
@@ -268,7 +268,7 @@ export default function GuardLog({ locationName, shiftId, userId, canWrite, isPl
                 <p className="text-sm whitespace-pre-wrap leading-snug">{e.content}</p>
                 {e.photo_signed && (
                   <a href={e.photo_signed} target="_blank" rel="noreferrer" className="inline-block">
-                    <img src={e.photo_signed} alt="Anhang" className="h-24 w-24 object-cover rounded-md border" />
+                    <img src={e.photo_signed} alt="Bildanhang zum Wachbuch-Eintrag" className="h-24 w-24 object-cover rounded-md border" />
                   </a>
                 )}
                 {e.photo_url && !e.photo_signed && (
