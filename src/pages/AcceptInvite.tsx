@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Briefcase, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import SeoHead from "@/components/SeoHead";
 
 export default function AcceptInvite() {
   const { token } = useParams<{ token: string }>();
@@ -57,7 +58,8 @@ export default function AcceptInvite() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md space-y-6">
+      <SeoHead title="Einladung annehmen — Ledion" description="Akzeptiere deine Einladung zum Ledion Security Team und richte dein Mitarbeiter-Konto ein." path="/invite" />
+      <main className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-3">
             <Briefcase className="w-8 h-8 text-primary-foreground" />
@@ -94,7 +96,7 @@ export default function AcceptInvite() {
             </form>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

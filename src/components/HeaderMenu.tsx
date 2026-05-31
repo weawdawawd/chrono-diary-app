@@ -246,7 +246,7 @@ function ControlledSettings({ open, onOpenChange, settings, onSaveSettings, proj
                   <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
                   <span className="flex-1 truncate">{p.name}</span>
                   {p.client && <span className="text-xs text-muted-foreground truncate">{p.client}</span>}
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteProject(p.id)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteProject(p.id)} aria-label={`Projekt ${p.name} löschen`}>
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>

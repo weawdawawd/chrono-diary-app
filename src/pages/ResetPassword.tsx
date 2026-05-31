@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { KeyRound, Check, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import SeoHead from "@/components/SeoHead";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -105,7 +106,8 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <motion.div
+      <SeoHead title="Passwort zurücksetzen — Ledion" description="Setze dein Ledion Security Konto-Passwort sicher zurück." path="/reset-password" noIndex />
+      <motion.main
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md space-y-6"
@@ -165,7 +167,7 @@ export default function ResetPassword() {
             </form>
           )}
         </div>
-      </motion.div>
+      </motion.main>
     </div>
   );
 }

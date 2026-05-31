@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, KeyRound, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import SeoHead from "@/components/SeoHead";
 
 const AppleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -98,7 +99,12 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <SeoHead
+        title="Anmeldung — Ledion Security"
+        description="Anmelden bei Ledion Security: Arbeitszeit-Erfassung, Schichtplanung und Wachbuch für dein Sicherheitsteam."
+        path="/"
+      />
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md space-y-8">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center space-y-4">
             <div className="relative inline-flex flex-col items-center">
@@ -106,7 +112,10 @@ export default function AuthPage() {
               <img src={(new URL("../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion Security" className="relative w-24 h-24 object-contain drop-shadow-xl" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-3xl tracking-tight">LEDION <span className="text-brand-red">SECURITY</span></h1>
+              <h1 className="font-display font-bold text-3xl tracking-tight">
+                LEDION <span className="text-brand-red">SECURITY</span>
+                <span className="sr-only"> — Arbeitszeit-Erfassung &amp; Schichtplanung</span>
+              </h1>
               <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
                 Arbeitszeit-Erfassung &amp; Schichtplanung für dein Sicherheitsteam.
               </p>
@@ -204,7 +213,7 @@ export default function AuthPage() {
             <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-accent" />PDF Export</span>
           </motion.div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
