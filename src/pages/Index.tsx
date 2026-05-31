@@ -107,17 +107,22 @@ const Index = () => {
       <div className="flex justify-end">
         <SosButton userId={user.id} />
       </div>
+      <h2 className="sr-only">Schicht &amp; Patrouille</h2>
       <ShiftClock userId={user.id} />
       <PatrolScanner userId={user.id} />
       <MyShifts userId={user.id} mode="today-consent" />
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-        {entries.length > 0 && <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />}
-      </motion.div>
-
-      {entries.length > 0 && <WeeklyChart entries={filteredEntries} />}
-      {entries.length > 0 && <MonthlyComparisonChart entries={entries} />}
-      {entries.length > 0 && <WorkCalendar entries={entries} />}
+      {entries.length > 0 && (
+        <>
+          <h2 className="sr-only">Statistik</h2>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+            <WorkStats entries={filteredEntries} weeklyTargetHours={settings?.weekly_target_hours ?? 40} />
+          </motion.div>
+          <WeeklyChart entries={filteredEntries} />
+          <MonthlyComparisonChart entries={entries} />
+          <WorkCalendar entries={entries} />
+        </>
+      )}
 
       {entries.length > 0 && (
         <MonthFilter
