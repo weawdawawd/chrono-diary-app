@@ -60,10 +60,9 @@ export default function Unsubscribe() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <SeoHead title="E-Mail-Abmeldung — Ledion" description="Melde dich von Ledion Security E-Mail-Benachrichtigungen ab." path="/unsubscribe" noIndex />
-      <Card asChild className="w-full max-w-md p-6 space-y-4 text-center">
-        <main>
+      <Card className="w-full max-w-md p-6 space-y-4 text-center">
         <div className="flex justify-center"><BrandLogo size={48} /></div>
         <h1 className="font-display font-bold text-xl">E-Mail-Abmeldung</h1>
 
