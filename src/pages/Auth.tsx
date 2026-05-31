@@ -174,15 +174,7 @@ export default function AuthPage() {
                 </button>
               ) : (
                 <p className="text-center text-xs text-muted-foreground">
-                  {mode === "login" ? (
-                    <>Noch kein Konto?{" "}
-                      <button type="button" onClick={() => setMode("signup")} className="text-accent font-medium hover:underline">Jetzt registrieren</button>
-                    </>
-                  ) : (
-                    <>Schon ein Konto?{" "}
-                      <button type="button" onClick={() => setMode("login")} className="text-accent font-medium hover:underline">Anmelden</button>
-                    </>
-                  )}
+                  Zugang nur auf Einladung. Bitte kontaktiere deinen Administrator.
                 </p>
               )}
             </motion.div>
