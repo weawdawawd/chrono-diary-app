@@ -24,6 +24,7 @@ import { Search } from "lucide-react";
 import MyShifts from "@/components/MyShifts";
 import SosButton from "@/components/SosButton";
 import SosBanner from "@/components/SosBanner";
+import PatrolScanner from "@/components/PatrolScanner";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
 
 import AdminAuthDebug from "@/components/AdminAuthDebug";
