@@ -24,13 +24,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
-type Mode = "login" | "signup" | "forgot";
+type Mode = "login" | "forgot";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
 
@@ -59,17 +58,6 @@ export default function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Willkommen zurück!");
-      } else if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { display_name: name.trim() || undefined },
-          },
-        });
-        if (error) throw error;
-        toast.success("Konto erstellt. Bitte E-Mail bestätigen.");
-        setMode("login");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -93,7 +81,6 @@ export default function AuthPage() {
 
   const titles = {
     login: { h: "Willkommen zurück", sub: "Melde dich an, um fortzufahren" },
-    signup: { h: "Konto erstellen", sub: "Registriere dich in wenigen Sekunden" },
     forgot: { h: "Passwort vergessen", sub: "Wir senden dir einen Link zum Zurücksetzen" },
   };
 
@@ -135,12 +122,6 @@ export default function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === "signup" && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-xs font-medium">Name (optional)</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Vor- und Nachname" className="h-11" />
-                  </div>
-                )}
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-xs font-medium">E-Mail</Label>
                   <Input id="email" type="email" placeholder="deine@email.de" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="h-11" />
@@ -148,7 +129,7 @@ export default function AuthPage() {
                 {mode !== "forgot" && (
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-xs font-medium">Passwort</Label>
-                    <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} className="h-11" />
+                    <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" className="h-11" />
                   </div>
                 )}
 
@@ -163,7 +144,6 @@ export default function AuthPage() {
                 <Button type="submit" className="w-full h-11 text-sm font-semibold" disabled={loading}>
                   {loading ? <span className="animate-pulse">Laden...</span>
                     : mode === "login" ? <>Anmelden <ArrowRight className="w-4 h-4 ml-1" /></>
-                    : mode === "signup" ? <>Konto erstellen <ArrowRight className="w-4 h-4 ml-1" /></>
                     : <><KeyRound className="w-4 h-4 mr-1" /> Link senden</>}
                 </Button>
               </form>
@@ -194,15 +174,7 @@ export default function AuthPage() {
                 </button>
               ) : (
                 <p className="text-center text-xs text-muted-foreground">
-                  {mode === "login" ? (
-                    <>Noch kein Konto?{" "}
-                      <button type="button" onClick={() => setMode("signup")} className="text-accent font-medium hover:underline">Jetzt registrieren</button>
-                    </>
-                  ) : (
-                    <>Schon ein Konto?{" "}
-                      <button type="button" onClick={() => setMode("login")} className="text-accent font-medium hover:underline">Anmelden</button>
-                    </>
-                  )}
+                  Zugang nur auf Einladung. Bitte kontaktiere deinen Administrator.
                 </p>
               )}
             </motion.div>
