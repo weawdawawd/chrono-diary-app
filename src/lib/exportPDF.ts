@@ -25,6 +25,27 @@ export async function exportToPDF(entries: WorkEntry[]) {
   if (!entries || entries.length === 0) {
     throw new Error("Keine Einträge zum Exportieren.");
   }
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+
+  // WICHTIG: Auf iOS muss window.open SYNCHRON im Klick-Handler geschehen,
+  // sonst blockiert Safari den neuen Tab. Wir öffnen jetzt ein Platzhalter-
+  // Fenster und befüllen es später mit der fertigen PDF-URL.
+  let preOpenedWin: Window | null = null;
+  if (isIOS || isAndroid) {
+    preOpenedWin = window.open("", "_blank");
+    if (preOpenedWin) {
+      preOpenedWin.document.write(
+        '<html><head><title>PDF wird erstellt…</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>' +
+        '<body style="font-family:-apple-system,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#444;background:#fafafa;">' +
+        '<div style="text-align:center"><div style="font-size:16px">PDF wird vorbereitet…</div><div style="font-size:13px;color:#888;margin-top:8px">Einen Moment bitte</div></div>' +
+        '</body></html>'
+      );
+    }
+  }
+
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -119,48 +140,84 @@ export async function exportToPDF(entries: WorkEntry[]) {
   });
 
   const filename = "arbeitszeiten.pdf";
-  const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
-  const isAndroid = /Android/i.test(ua);
+
+  // Blob + Object-URL erstellen (zuverlässig für Mobile-Viewer)
+  let blobUrl: string | null = null;
+  let dataUrl: string | null = null;
+  try {
+    const blob = doc.output("blob");
+    blobUrl = URL.createObjectURL(blob);
+  } catch (e) {
+    console.warn("[pdf] Blob-Erstellung fehlgeschlagen", e);
+  }
 
   try {
     if (isIOS) {
-      // iOS Safari & In-App-WebViews: data-URL im selben Tab öffnen
-      // (Blob-URLs werden von iOS oft blockiert; window.open nach await ebenfalls)
-      const dataUrl = doc.output("datauristring");
-      // Nutzer kann oben rechts auf "Teilen" → "In Dateien sichern" tippen
-      window.location.href = dataUrl;
+      // 1) Bevorzugt: vorher geöffneten Tab mit Blob-URL befüllen
+      if (preOpenedWin && blobUrl) {
+        try {
+          preOpenedWin.location.href = blobUrl;
+          setTimeout(() => blobUrl && URL.revokeObjectURL(blobUrl), 60_000);
+          return;
+        } catch (e) {
+          console.warn("[pdf] iOS Blob-URL im neuen Tab fehlgeschlagen", e);
+        }
+      }
+      // 2) Fallback: data-URL im neuen Tab (falls offen) oder im selben Tab
+      try {
+        dataUrl = doc.output("datauristring");
+      } catch (e) {
+        console.warn("[pdf] data-URL-Erstellung fehlgeschlagen", e);
+      }
+      if (preOpenedWin && dataUrl) {
+        preOpenedWin.location.href = dataUrl;
+        return;
+      }
+      if (dataUrl) {
+        window.location.href = dataUrl;
+        return;
+      }
+      // 3) Letzter Fallback: jsPDF save()
+      doc.save(filename);
       return;
     }
 
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-
     if (isAndroid) {
-      // Android: in neuem Tab anzeigen (Chrome-PDF-Viewer)
-      const win = window.open(url, "_blank");
-      if (!win) {
-        // Popup blockiert → Download erzwingen
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      if (preOpenedWin && blobUrl) {
+        preOpenedWin.location.href = blobUrl;
+      } else if (blobUrl) {
+        const win = window.open(blobUrl, "_blank");
+        if (!win) {
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = filename;
+          a.rel = "noopener";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+      } else {
+        doc.save(filename);
       }
-    } else {
-      // Desktop: Download
+      if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl!), 60_000);
+      return;
+    }
+
+    // Desktop: Download
+    if (blobUrl) {
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl!), 60_000);
+    } else {
+      doc.save(filename);
     }
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch (e) {
     console.warn("[pdf] Export fehlgeschlagen, fallback save()", e);
+    try { preOpenedWin?.close(); } catch {}
     doc.save(filename);
   }
 }
