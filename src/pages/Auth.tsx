@@ -213,7 +213,7 @@ export default function AuthPage() {
             <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-accent" />PDF Export</span>
           </motion.div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
