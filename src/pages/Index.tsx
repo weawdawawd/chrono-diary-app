@@ -153,6 +153,7 @@ const Index = () => {
         </div>
       )}
 
+      <h2 className="sr-only">Neuer Arbeitszeit-Eintrag</h2>
       <WorkEntryForm onAdd={(entry) => { addEntry(entry); upsertActivity(entry.description); }} savedLocations={savedLocations} projects={projects} savedActivities={savedActivities} />
 
       {entriesLoading ? (
