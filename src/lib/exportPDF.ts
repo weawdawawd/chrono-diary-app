@@ -119,15 +119,28 @@ export async function exportToPDF(entries: WorkEntry[]) {
   });
 
   const filename = "arbeitszeiten.pdf";
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+
   try {
+    if (isIOS) {
+      // iOS Safari & In-App-WebViews: data-URL im selben Tab öffnen
+      // (Blob-URLs werden von iOS oft blockiert; window.open nach await ebenfalls)
+      const dataUrl = doc.output("datauristring");
+      // Nutzer kann oben rechts auf "Teilen" → "In Dateien sichern" tippen
+      window.location.href = dataUrl;
+      return;
+    }
+
     const blob = doc.output("blob");
     const url = URL.createObjectURL(blob);
-    // Auf iOS/Safari/Capacitor öffnet doc.save() oft nichts → Blob in neuem Tab öffnen + Download-Link
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
+
+    if (isAndroid) {
+      // Android: in neuem Tab anzeigen (Chrome-PDF-Viewer)
       const win = window.open(url, "_blank");
       if (!win) {
-        // Popup blockiert → erzwinge Download via Link
+        // Popup blockiert → Download erzwingen
         const a = document.createElement("a");
         a.href = url;
         a.download = filename;
@@ -137,6 +150,7 @@ export async function exportToPDF(entries: WorkEntry[]) {
         a.remove();
       }
     } else {
+      // Desktop: Download
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
@@ -146,7 +160,7 @@ export async function exportToPDF(entries: WorkEntry[]) {
     }
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch (e) {
-    console.warn("[pdf] Blob-Export fehlgeschlagen, fallback save()", e);
+    console.warn("[pdf] Export fehlgeschlagen, fallback save()", e);
     doc.save(filename);
   }
 }
