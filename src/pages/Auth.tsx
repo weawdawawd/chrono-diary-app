@@ -24,13 +24,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
-type Mode = "login" | "signup" | "forgot";
+type Mode = "login" | "forgot";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
 
