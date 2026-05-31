@@ -80,13 +80,13 @@ export default function PatrolPage() {
     const dataUrl = await QRCode.toDataURL(pt.code, { width: 400, margin: 2 });
     const w = window.open("", "_blank");
     if (!w) return toast.error("Popup blockiert");
-    w.document.write(`<html><head><title>QR ${pt.name}</title>
+    w.document.write(`<html><head><title>QR ${escapeHtml(pt.name)}</title>
       <style>body{font-family:sans-serif;text-align:center;padding:40px;}img{width:300px;}h2{margin:10px 0 4px;}p{color:#555;margin:0;}code{font-family:monospace;background:#eee;padding:2px 6px;border-radius:4px;}</style>
       </head><body>
-      <h2>${pt.name}</h2>
-      <p>${pt.location}</p>
+      <h2>${escapeHtml(pt.name)}</h2>
+      <p>${escapeHtml(pt.location)}</p>
       <img src="${dataUrl}" />
-      <p><code>${pt.code}</code></p>
+      <p><code>${escapeHtml(pt.code)}</code></p>
       <script>setTimeout(()=>window.print(),300)</script>
       </body></html>`);
     w.document.close();
@@ -97,18 +97,18 @@ export default function PatrolPage() {
     if (!list.length) return;
     const items = await Promise.all(list.map(async (pt) => {
       const url = await QRCode.toDataURL(pt.code, { width: 320, margin: 2 });
-      return `<div class="card"><h3>${pt.name}</h3><p>${pt.location}</p><img src="${url}"/><code>${pt.code}</code></div>`;
+      return `<div class="card"><h3>${escapeHtml(pt.name)}</h3><p>${escapeHtml(pt.location)}</p><img src="${url}"/><code>${escapeHtml(pt.code)}</code></div>`;
     }));
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(`<html><head><title>QR ${location}</title>
+    w.document.write(`<html><head><title>QR ${escapeHtml(location)}</title>
       <style>body{font-family:sans-serif;margin:20px;}
       .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
       .card{border:1px solid #ccc;border-radius:8px;padding:14px;text-align:center;break-inside:avoid;}
       .card img{width:220px;}h3{margin:0 0 4px;}p{color:#555;margin:0 0 8px;font-size:13px;}
       code{font-family:monospace;font-size:11px;background:#eee;padding:2px 6px;border-radius:4px;}
       </style></head><body>
-      <h2>Patrouille — ${location}</h2>
+      <h2>Patrouille — ${escapeHtml(location)}</h2>
       <div class="grid">${items.join("")}</div>
       <script>setTimeout(()=>window.print(),400)</script>
       </body></html>`);
