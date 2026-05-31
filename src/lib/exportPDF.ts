@@ -118,5 +118,35 @@ export async function exportToPDF(entries: WorkEntry[]) {
     },
   });
 
-  doc.save("arbeitszeiten.pdf");
+  const filename = "arbeitszeiten.pdf";
+  try {
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+    // Auf iOS/Safari/Capacitor öffnet doc.save() oft nichts → Blob in neuem Tab öffnen + Download-Link
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      const win = window.open(url, "_blank");
+      if (!win) {
+        // Popup blockiert → erzwinge Download via Link
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    } else {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    console.warn("[pdf] Blob-Export fehlgeschlagen, fallback save()", e);
+    doc.save(filename);
+  }
 }
