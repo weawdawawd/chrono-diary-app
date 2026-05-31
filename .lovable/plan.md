@@ -1,52 +1,48 @@
-# Umsetzungsplan – 6 Features
+## Ziel
 
-## 1. Neue Rolle "Objektleiter"
+Die gesamte App (Mitarbeiter- + Admin-Bereich) in alle 8 Sprachen übersetzen: DE, EN, AR, FA, SQ, ES, FR, TR. RTL-Layout für AR/FA bereits vorhanden, wird beibehalten.
 
-**Datenbank-Migration:**
-- `app_role` Enum um `'objektleiter'` erweitern
-- RLS-Policies anpassen, damit Objektleiter Schichten erstellen darf (INSERT/UPDATE/SELECT/DELETE auf `shifts`), aber **keinen** Zugriff auf `work_entries` anderer hat
-- Bestehende Admin-Policies bleiben unverändert
-- Neue Helper-Funktion `is_planner(_user_id)` = `is_admin OR has_role(objektleiter)` für Schicht-Policies
+## Vorgehen
 
-**Admin-UI (`EmployeesPage`):**
-- Pro Mitarbeiter Dropdown: Security / Objektleiter / Admin
-- Speichert Rolle in `user_roles`
+### Wörterbuch-Refactor (einmalig, vor Phase 1)
 
-## 2. Objektleiter-Ansicht
+Das aktuelle `dict` in `src/lib/i18n.tsx` wird unübersichtlich, wenn hunderte Strings reinkommen. Daher:
 
-- Objektleiter loggt sich ein wie normaler Mitarbeiter
-- In `Index.tsx`: wenn `role === 'objektleiter'` → zusätzlicher Tab/Bereich "Schicht-Einteilung" sichtbar
-- Wiederverwendung der bestehenden `ShiftsPage`-Logik in einer neuen Komponente `PlannerView`, **ohne** Zugriff auf Mitarbeiter-Stunden/Statistik
-- Mitarbeiter-Bereich (eigene Stunden, eigene Schichten) bleibt erhalten
+- `src/lib/i18n/` als Ordner anlegen
+- `src/lib/i18n/keys.ts` — alle Übersetzungs-Keys + DE-Quelle
+- `src/lib/i18n/locales/{en,ar,fa,sq,es,fr,tr}.ts` — eine Datei pro Sprache
+- `src/lib/i18n.tsx` lädt diese und exportiert `useT()` weiter (kein API-Bruch)
+- Fallback bleibt: fehlender Key → DE-Quelle anzeigen
 
-## 3. SOS-Weiterleitung an Kollegen im 1 km
+### Phase 1 — Mitarbeiter-Bereich (diese Iteration)
 
-- `useUserRole` Hook nutzen, um `SosBanner` in `Index.tsx` für **alle** eingeloggten Mitarbeiter zu rendern (aktuell evtl. nur an einer Stelle)
-- Realtime-Channel sicherstellen (`postgres_changes` auf `sos_alerts` für `authenticated` Role)
-- RLS auf `sos_alerts` ergänzen: SELECT auf nicht-resolved Alerts, damit Realtime-Events Mitarbeiter erreichen — Inhalt wird ohnehin via `get_nearby_active_sos` gefiltert
-- Geolocation-Permission beim ersten Schicht-Start anfordern, damit `getCurrentPosition` zuverlässig funktioniert
+Komponenten, die normale Mitarbeiter sehen, vollständig verdrahten:
 
-## 4. Objekt-Dropdown in Schicht-Einteilung
+- `src/pages/Auth.tsx`, `AcceptInvite.tsx`, `ResetPassword.tsx`, `Unsubscribe.tsx`
+- `src/pages/Index.tsx`
+- `src/components/`: `WorkEntryForm`, `WorkEntryList`, `WorkStats`, `WeeklyChart`, `MonthlyComparisonChart`, `MonthFilter`, `MyShifts` (Ausbau), `MyShiftsCalendar`, `MyLogbook`, `GuardLog`, `ShiftClock`, `SosBanner`, `SosButton` (Ausbau), `DailyReminder`, `ExportDialog`, `SettingsDialog`, `HeaderMenu` (Ausbau), `AvatarUpload`, `PhoneSetting`, `WorkCalendar`, `ShiftMiniCalendar`, `DuplicateButton`, `NavLink`, `PatrolScanner`
+- Alle `toast.success/error/info` in diesen Dateien
 
-- In `ShiftsPage` beim Feld "Objekt": `<Select>` mit allen Einträgen aus `global_locations` statt freier Text
-- Auswahl übernimmt automatisch `address`, `lat`, `lng`, `geofence_radius_m` in die neue Schicht
+### Phase 2 — Admin-Bereich (nächste Iteration)
 
-## 5. Ledion-Logo im PDF
+- `src/pages/admin/`: `AdminLayout`, `DashboardPage`, `EmployeesPage`, `InvitationsPage`, `LogbookPage`, `PatrolPage`, `ShiftsPage`, `SessionsPage`, `CatalogPage`
+- `src/components/admin/`: `AdminSidebar`, `AdminUserMenu`, `AccountSettingsDialog`, `LiveMap`
+- `src/components/AdminPanel.tsx`
 
-- `src/lib/exportPDF.ts`: Logo (`@/assets/ledion-logo.png`) als Base64 einbetten via `addImage()` oben links, Titel daneben
+### Phase 3 — Polish
 
-## 6. Schichten als Zeitraum (Von–Bis)
+- E-Mail-Templates (`supabase/functions/_shared/...`) — entweder beibehalten (DE) oder pro Empfänger-Sprache, klärungsbedürftig
+- Restliche kleine Komponenten + Toasts, die in Phase 1/2 übersehen wurden
+- Manuelle Durchsicht aller 8 Sprachen auf Tippfehler
 
-- `ShiftsPage` Formular: zusätzlich Datumsbereich (Von/Bis) + Wochentage-Auswahl (optional alle)
-- Beim Speichern: Schleife über jeden Tag im Bereich → eine Schicht pro Tag mit gleicher Zeit/Objekt/Mitarbeiter
+## Technische Details
 
----
+- Keys = englische Slugs (z. B. `auth.login.title`), nicht mehr deutsche Originalstrings — sauberer und kollisionsfrei.
+- Jede `.ts`-Locale-Datei exportiert ein `Record<string, string>`; TypeScript erzwingt nichts (Lücken erlaubt, Fallback greift).
+- Wo Strings dynamische Werte enthalten (`${count} Stunden`), bekommt `t()` Parameter: `t("stats.hours", { count })`.
+- RTL: `document.documentElement.dir` wird bereits gesetzt, keine Änderung.
+- Date/Number-Formate werden via `Intl` an `lang` gekoppelt (kurzer Helper `formatDate(date, lang)`).
 
-## Reihenfolge
+## Liefer-Reihenfolge in dieser Antwort
 
-1. Migration (Rolle + Helper + Policies)
-2. EmployeesPage: Rollen-Dropdown
-3. ShiftsPage: Objekt-Dropdown + Zeitraum
-4. PlannerView für Objektleiter + Routing in Index
-5. PDF-Logo
-6. SOS-Banner global einbinden + Realtime prüfen
+Nur Phase 1 wird jetzt umgesetzt. Phase 2 + 3 folgen, sobald du Phase 1 abgenommen hast — sonst wird die Änderungsmenge zu groß für eine saubere Review.
