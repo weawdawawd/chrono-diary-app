@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Briefcase, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import SeoHead from "@/components/SeoHead";
 
 export default function AcceptInvite() {
   const { token } = useParams<{ token: string }>();
@@ -95,7 +96,7 @@ export default function AcceptInvite() {
             </form>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
