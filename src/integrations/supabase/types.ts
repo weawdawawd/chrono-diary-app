@@ -241,6 +241,122 @@ export type Database = {
         }
         Relationships: []
       }
+      patrol_points: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string
+          id: string
+          lat: number | null
+          lng: number | null
+          location: string
+          name: string
+          nfc_id: string | null
+          order_index: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location: string
+          name: string
+          nfc_id?: string | null
+          order_index?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          location?: string
+          name?: string
+          nfc_id?: string | null
+          order_index?: number
+        }
+        Relationships: []
+      }
+      patrol_routes: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          id: string
+          location: string
+          name: string
+          required_points: number
+          required_rounds: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          id?: string
+          location: string
+          name: string
+          required_points?: number
+          required_rounds?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          id?: string
+          location?: string
+          name?: string
+          required_points?: number
+          required_rounds?: number
+        }
+        Relationships: []
+      }
+      patrol_scans: {
+        Row: {
+          id: string
+          lat: number | null
+          lng: number | null
+          point_id: string
+          scan_method: string
+          scanned_at: string
+          shift_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          point_id: string
+          scan_method?: string
+          scanned_at?: string
+          shift_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          point_id?: string
+          scan_method?: string
+          scanned_at?: string
+          shift_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_scans_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
