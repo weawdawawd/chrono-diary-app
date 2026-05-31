@@ -66,7 +66,8 @@ Deno.serve(async (req) => {
 
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) {
-      return new Response(JSON.stringify({ error: delErr.message }), {
+      console.error("[delete-employee] deleteUser failed", delErr);
+      return new Response(JSON.stringify({ error: "Mitarbeiter konnte nicht entfernt werden" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -75,7 +76,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
+    console.error("[delete-employee] Unhandled error", e);
+    return new Response(JSON.stringify({ error: "Interner Serverfehler" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
