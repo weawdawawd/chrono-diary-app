@@ -8,7 +8,6 @@ import { ArrowRight, KeyRound, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SeoHead from "@/components/SeoHead";
-import { useT } from "@/lib/i18n";
 
 const AppleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
