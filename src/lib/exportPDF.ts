@@ -25,6 +25,27 @@ export async function exportToPDF(entries: WorkEntry[]) {
   if (!entries || entries.length === 0) {
     throw new Error("Keine Einträge zum Exportieren.");
   }
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+
+  // WICHTIG: Auf iOS muss window.open SYNCHRON im Klick-Handler geschehen,
+  // sonst blockiert Safari den neuen Tab. Wir öffnen jetzt ein Platzhalter-
+  // Fenster und befüllen es später mit der fertigen PDF-URL.
+  let preOpenedWin: Window | null = null;
+  if (isIOS || isAndroid) {
+    preOpenedWin = window.open("", "_blank");
+    if (preOpenedWin) {
+      preOpenedWin.document.write(
+        '<html><head><title>PDF wird erstellt…</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>' +
+        '<body style="font-family:-apple-system,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#444;background:#fafafa;">' +
+        '<div style="text-align:center"><div style="font-size:16px">PDF wird vorbereitet…</div><div style="font-size:13px;color:#888;margin-top:8px">Einen Moment bitte</div></div>' +
+        '</body></html>'
+      );
+    }
+  }
+
   const doc = new jsPDF();
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
 
