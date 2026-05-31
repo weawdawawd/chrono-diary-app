@@ -57,12 +57,23 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Enforce that the registered email matches the invitation's pre-set email
+    // to prevent link interception/forwarding from creating accounts under a
+    // different identity that inherits the invited role.
+    if (invite.email && email.toLowerCase().trim() !== invite.email.toLowerCase().trim()) {
+      return new Response(JSON.stringify({ error: "E-Mail stimmt nicht mit der Einladung überein" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
       user_metadata: { display_name: displayName ?? null },
     });
     if (createErr || !created.user) {
-      return new Response(JSON.stringify({ error: createErr?.message ?? "Konto konnte nicht erstellt werden" }), {
+      // Log details server-side, return generic message to avoid account enumeration
+      console.error("[accept-invitation] createUser failed", { error: createErr?.message });
+      return new Response(JSON.stringify({ error: "Konto konnte nicht erstellt werden. Bitte versuche es erneut." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
