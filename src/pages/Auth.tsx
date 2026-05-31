@@ -81,7 +81,6 @@ export default function AuthPage() {
 
   const titles = {
     login: { h: "Willkommen zurück", sub: "Melde dich an, um fortzufahren" },
-    signup: { h: "Konto erstellen", sub: "Registriere dich in wenigen Sekunden" },
     forgot: { h: "Passwort vergessen", sub: "Wir senden dir einen Link zum Zurücksetzen" },
   };
 
