@@ -58,17 +58,6 @@ export default function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Willkommen zurück!");
-      } else if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { display_name: name.trim() || undefined },
-          },
-        });
-        if (error) throw error;
-        toast.success("Konto erstellt. Bitte E-Mail bestätigen.");
-        setMode("login");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
