@@ -16,6 +16,7 @@ import ShiftsPage from "./pages/admin/ShiftsPage";
 import CatalogPage from "./pages/admin/CatalogPage";
 import LogbookPage from "./pages/admin/LogbookPage";
 import SessionsPage from "./pages/admin/SessionsPage";
+import PatrolPage from "./pages/admin/PatrolPage";
 
 import { LanguageProvider } from "@/lib/i18n";
 
@@ -42,6 +43,9 @@ const App = () => (
               <Route path="catalog" element={<CatalogPage />} />
               <Route path="logbook" element={<LogbookPage />} />
               <Route path="sessions" element={<SessionsPage />} />
+              <Route path="patrol" element={<PatrolPage />} />
+
+
 
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
