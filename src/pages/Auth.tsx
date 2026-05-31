@@ -122,12 +122,6 @@ export default function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === "signup" && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-xs font-medium">Name (optional)</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Vor- und Nachname" className="h-11" />
-                  </div>
-                )}
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-xs font-medium">E-Mail</Label>
                   <Input id="email" type="email" placeholder="deine@email.de" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="h-11" />
@@ -135,7 +129,7 @@ export default function AuthPage() {
                 {mode !== "forgot" && (
                   <div className="space-y-1.5">
                     <Label htmlFor="password" className="text-xs font-medium">Passwort</Label>
-                    <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} className="h-11" />
+                    <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" className="h-11" />
                   </div>
                 )}
 
@@ -150,7 +144,6 @@ export default function AuthPage() {
                 <Button type="submit" className="w-full h-11 text-sm font-semibold" disabled={loading}>
                   {loading ? <span className="animate-pulse">Laden...</span>
                     : mode === "login" ? <>Anmelden <ArrowRight className="w-4 h-4 ml-1" /></>
-                    : mode === "signup" ? <>Konto erstellen <ArrowRight className="w-4 h-4 ml-1" /></>
                     : <><KeyRound className="w-4 h-4 mr-1" /> Link senden</>}
                 </Button>
               </form>
