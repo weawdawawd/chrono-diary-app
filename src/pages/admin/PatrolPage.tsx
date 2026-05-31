@@ -23,6 +23,14 @@ interface Point {
 }
 interface Route { id: string; name: string; location: string; required_rounds: number; required_points: number; active: boolean; }
 
+const escapeHtml = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 export default function PatrolPage() {
   const { user } = useAuth();
   const [points, setPoints] = useState<Point[]>([]);
