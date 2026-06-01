@@ -276,9 +276,13 @@ export default function ChatPage() {
     if (groupMembers.length === 0) { toast.error("Mindestens 1 Mitglied auswählen"); return; }
     const { data: conv, error } = await supabase.from("chat_conversations").insert({ is_group: true, name: groupName.trim(), created_by: user.id }).select().single();
     if (error || !conv) { toast.error(error?.message || "Fehler"); return; }
-    const rows = [user.id, ...groupMembers].map((uid) => ({ conversation_id: conv.id, user_id: uid }));
-    const { error: pErr } = await supabase.from("chat_participants").insert(rows);
-    if (pErr) { toast.error(pErr.message); return; }
+    const { error: selfErr } = await supabase.from("chat_participants").insert({ conversation_id: conv.id, user_id: user.id });
+    if (selfErr) { toast.error(selfErr.message); return; }
+    if (groupMembers.length) {
+      const rows = groupMembers.map((uid) => ({ conversation_id: conv.id, user_id: uid }));
+      const { error: pErr } = await supabase.from("chat_participants").insert(rows);
+      if (pErr) { toast.error(pErr.message); return; }
+    }
     toast.success("Gruppe erstellt");
     setOpenGroupDialog(false); setGroupName(""); setGroupMembers([]);
     setActiveConvId(conv.id);
