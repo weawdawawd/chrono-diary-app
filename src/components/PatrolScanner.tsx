@@ -137,14 +137,9 @@ export default function PatrolScanner({ userId }: Props) {
       const r = (data as any[])?.[0];
       if (r) pointMeta = { id: r.point_id, name: r.name, location: r.location };
     } else if (payload) {
-      // Backwards-compat: plain point code printed on older QR labels
-      const { data } = await supabase
-        .from("patrol_points")
-        .select("id,name,location")
-        .eq("code", payload)
-        .eq("active", true)
-        .maybeSingle();
-      if (data) pointMeta = data as any;
+      setLastResult({ ok: false, text: "Ungültiger QR-Code – bitte neuen signierten Code drucken" });
+      toast.error("Ungültiger QR-Code");
+      return;
     } else if (nfcId) {
       const { data } = await supabase
         .from("patrol_points")
