@@ -540,7 +540,7 @@ export default function ChatPage() {
           ) : (
             <>
               <div className="h-12 border-b flex items-center gap-2 px-3">
-                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setActiveConvId(null)}><ArrowLeft className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setActiveConvId(null)} aria-label="Zurück zur Chat-Liste"><ArrowLeft className="w-4 h-4" /></Button>
                 {activeConv?.conv.is_group ? <Users className="w-4 h-4 text-primary" /> : null}
                 <div className="font-medium text-sm truncate flex-1">{activeTitle}</div>
                 {activeConv?.conv.is_group && (
