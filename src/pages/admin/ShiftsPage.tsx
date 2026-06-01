@@ -1,3 +1,4 @@
+import SeoHead from "@/components/SeoHead";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -272,6 +273,7 @@ export default function ShiftsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+      <SeoHead title="Schichten & Bestellungen — Ledion Admin" description="Schichten planen, Mitarbeitenden zuweisen, Standorte und Konsens verwalten — Ledion Security Admin." path="/admin/shifts" noIndex />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />

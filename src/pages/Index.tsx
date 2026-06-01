@@ -16,6 +16,7 @@ import MonthFilter from "@/components/MonthFilter";
 import { Navigate } from "react-router-dom";
 import { Briefcase, ClipboardList, User } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import SeoHead from "@/components/SeoHead";
 import HeaderMenu from "@/components/HeaderMenu";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
@@ -166,6 +167,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead
+        title="Ledion — Arbeitszeit, Schichten & Patrouille"
+        description="Erfasse Arbeitszeiten, plane Schichten und führe Patrouillen mit GPS-Stempeluhr und Wachbuch im Ledion Security Dashboard."
+        path="/"
+      />
       <header className="border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <BrandLogo size={40} showText textClassName="text-[15px]" />
