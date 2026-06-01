@@ -172,7 +172,7 @@ const Index = () => {
         description="Erfasse Arbeitszeiten, plane Schichten und führe Patrouillen mit GPS-Stempeluhr und Wachbuch im Ledion Security Dashboard."
         path="/"
       />
-      <header className="border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10">
+      <header className="border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10 pt-safe">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <BrandLogo size={40} showText textClassName="text-[15px]" />
           <div className="flex-1 min-w-0">
