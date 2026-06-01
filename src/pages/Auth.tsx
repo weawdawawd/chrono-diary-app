@@ -173,9 +173,14 @@ export default function AuthPage() {
                   <ArrowLeft className="w-3.5 h-3.5" /> Zurück zur Anmeldung
                 </button>
               ) : (
-                <p className="text-center text-xs text-muted-foreground">
-                  Zugang nur auf Einladung. Bitte kontaktiere deinen Administrator.
-                </p>
+                <div className="space-y-3">
+                  <p className="text-center text-xs text-muted-foreground">
+                    Zugang nur auf Einladung. Bitte kontaktiere deinen Administrator.
+                  </p>
+                  <a href="/download" className="flex items-center justify-center gap-1.5 text-xs text-accent font-medium hover:underline underline-offset-4">
+                    <Smartphone className="w-3.5 h-3.5" /> App für Android herunterladen
+                  </a>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>
