@@ -22,6 +22,7 @@ const items = [
   { title: "Objekte & Tätigkeiten", url: "/admin/catalog", icon: Library },
   { title: "Wachbuch", url: "/admin/logbook", icon: BookText },
   { title: "Patrouille", url: "/admin/patrol", icon: QrCode },
+  { title: "Chat", url: "/chat", icon: MessageSquare },
 
 ];
 
