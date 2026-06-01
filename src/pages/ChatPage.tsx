@@ -601,15 +601,52 @@ export default function ChatPage() {
                   const prev = messages[idx - 1];
                   const showSender = activeConv?.conv.is_group && !mine && prev?.sender_id !== m.sender_id;
                   const sender = activeConv?.others.find((o) => o.user_id === m.sender_id);
+                  const isEditing = editingId === m.id;
                   return (
-                    <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                    <div key={m.id} className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                         {showSender && <div className="text-[10px] text-muted-foreground mb-0.5 px-1">{sender?.display_name || sender?.username || "?"}</div>}
-                        <div className={`rounded-2xl px-3 py-1.5 text-sm whitespace-pre-wrap break-words ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                          {m.content}
+                        <div className={`flex items-start gap-1 ${mine ? "flex-row-reverse" : "flex-row"}`}>
+                          <div className={`rounded-2xl px-3 py-1.5 text-sm whitespace-pre-wrap break-words ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1 min-w-[180px]">
+                                <Input
+                                  value={editingDraft}
+                                  onChange={(e) => setEditingDraft(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(); } if (e.key === "Escape") cancelEdit(); }}
+                                  autoFocus
+                                  className="h-8 bg-background text-foreground"
+                                />
+                                <div className="flex gap-1 justify-end">
+                                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={cancelEdit}>Abbr.</Button>
+                                  <Button size="sm" className="h-6 px-2 text-xs" onClick={saveEdit} disabled={!editingDraft.trim()}>Speichern</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              m.content
+                            )}
+                          </div>
+                          {mine && !isEditing && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 focus:opacity-100 data-[state=open]:opacity-100 text-muted-foreground" aria-label="Nachricht bearbeiten oder löschen">
+                                  <MoreVertical className="w-3.5 h-3.5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-36">
+                                <DropdownMenuItem onClick={() => startEdit(m)}>
+                                  <Pencil className="w-3.5 h-3.5 mr-2" /> Bearbeiten
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setConfirmDeleteId(m.id)}>
+                                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Löschen
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                         <div className="text-[10px] text-muted-foreground mt-0.5 px-1">
                           {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {m.edited_at && <span className="ml-1 italic">(bearbeitet)</span>}
                         </div>
                       </div>
                     </div>
