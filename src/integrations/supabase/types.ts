@@ -953,6 +953,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_profile_basic: {
+        Args: { _user_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_unread_chat_counts: {
         Args: { _user: string }
         Returns: {
@@ -960,6 +969,7 @@ export type Database = {
           unread: number
         }[]
       }
+      has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -988,6 +998,15 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      search_profiles: {
+        Args: { _q: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
         }[]
       }
     }

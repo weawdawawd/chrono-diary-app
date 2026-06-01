@@ -208,18 +208,16 @@ export default function ChatPage() {
 
   const doSearch = async () => {
     const q = searchUser.trim().toLowerCase().replace(/^@/, "");
-    if (!q) return;
+    if (!q || q.length < 2) { toast.error("Mind. 2 Zeichen"); return; }
     setSearching(true); setSearchResult(null);
-    const { data } = await supabase
-      .from("profiles")
-      .select("user_id,username,display_name,email,avatar_url")
-      .ilike("username", q)
-      .maybeSingle();
+    const { data } = await supabase.rpc("search_profiles", { _q: q });
     setSearching(false);
-    if (!data) { toast.error("Kein Nutzer gefunden"); return; }
-    if ((data as any).user_id === user?.id) { toast.error("Das bist du selbst"); return; }
-    setSearchResult(data as any);
+    const match = (data ?? []).find((p: any) => (p.username || "").toLowerCase() === q) || (data ?? [])[0];
+    if (!match) { toast.error("Kein Nutzer gefunden"); return; }
+    if ((match as any).user_id === user?.id) { toast.error("Das bist du selbst"); return; }
+    setSearchResult(match as any);
   };
+
 
   const sendRequest = async (addressee_id: string) => {
     if (!user) return;
