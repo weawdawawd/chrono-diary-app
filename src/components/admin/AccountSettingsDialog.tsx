@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { UserCog, Mail, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarUpload from "@/components/AvatarUpload";
 
 interface Props {
   currentEmail?: string;
+  userId?: string;
   controlledOpen?: boolean;
   onOpenChange?: (v: boolean) => void;
   hideTrigger?: boolean;
