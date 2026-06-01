@@ -336,11 +336,13 @@ export default function ChatPage() {
   if (me && !me.username) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <SeoHead title="Chat — Username wählen" description="Wähle deinen Username, damit Kollegen dich im Ledion Security Team-Chat finden und als Freund hinzufügen können." path="/chat" noIndex />
         <div className="max-w-md w-full space-y-4 bg-card rounded-2xl p-6 border">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8"><ArrowLeft className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8" aria-label="Zurück"><ArrowLeft className="w-4 h-4" /></Button>
             <h2 className="font-display text-lg font-semibold">Username wählen</h2>
           </div>
+
           <p className="text-sm text-muted-foreground">Mit deinem Username können dich Kollegen finden und als Freund hinzufügen.</p>
           <div className="flex items-center gap-2">
             <Hash className="w-4 h-4 text-muted-foreground" />
