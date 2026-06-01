@@ -12,6 +12,8 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
 const items = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
@@ -22,14 +24,14 @@ const items = [
   { title: "Objekte & Tätigkeiten", url: "/admin/catalog", icon: Library },
   { title: "Wachbuch", url: "/admin/logbook", icon: BookText },
   { title: "Patrouille", url: "/admin/patrol", icon: QrCode },
-  { title: "Chat", url: "/chat", icon: MessageSquare },
-
+  { title: "Chat", url: "/chat", icon: MessageSquare, badge: "chat" as const },
 ];
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
+  const { total: unreadChats } = useUnreadChats();
 
   return (
     <Sidebar collapsible="icon">
@@ -51,12 +53,19 @@ export function AdminSidebar() {
             <SidebarMenu>
               {items.map((item) => {
                 const active = item.end ? pathname === item.url : pathname.startsWith(item.url);
+                const showBadge = item.badge === "chat" && unreadChats > 0;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <NavLink to={item.url} end={item.end} className="flex items-center gap-2">
+                      <NavLink to={item.url} end={item.end} className="flex items-center gap-2 relative">
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && <span className="flex-1">{item.title}</span>}
+                        {showBadge && !collapsed && (
+                          <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">{unreadChats}</Badge>
+                        )}
+                        {showBadge && collapsed && (
+                          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

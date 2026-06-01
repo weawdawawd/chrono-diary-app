@@ -102,6 +102,27 @@ export type Database = {
           },
         ]
       }
+      chat_reads: {
+        Row: {
+          conversation_id: string
+          id: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -930,6 +951,13 @@ export type Database = {
           lng: number
           message: string
           user_id: string
+        }[]
+      }
+      get_unread_chat_counts: {
+        Args: { _user: string }
+        Returns: {
+          conversation_id: string
+          unread: number
         }[]
       }
       has_role: {

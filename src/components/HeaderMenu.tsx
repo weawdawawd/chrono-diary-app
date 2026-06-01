@@ -24,6 +24,8 @@ import type { WorkEntry } from "@/lib/types";
 import { useEffect } from "react";
 import { useT, LANGUAGES } from "@/lib/i18n";
 import AvatarUpload from "@/components/AvatarUpload";
+import { Badge } from "@/components/ui/badge";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
 interface Props {
   email?: string;
@@ -41,6 +43,7 @@ export default function HeaderMenu({
   email, userId, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
 }: Props) {
   const { lang, setLang, t } = useT();
+  const { total: unreadChats } = useUnreadChats();
   const [open, setOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
@@ -66,8 +69,11 @@ export default function HeaderMenu({
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10" aria-label={t("Menü")}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10 relative" aria-label={t("Menü")}>
             <Menu className="w-5 h-5" />
+            {unreadChats > 0 && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
@@ -75,7 +81,10 @@ export default function HeaderMenu({
           <DropdownMenuSeparator />
           {userId && (
             <DropdownMenuItem asChild>
-              <Link to="/chat"><MessageSquare className="w-4 h-4 mr-2 text-accent" /> Chat</Link>
+              <Link to="/chat">
+                <MessageSquare className="w-4 h-4 mr-2 text-accent" /> Chat
+                {unreadChats > 0 && <Badge variant="destructive" className="ml-auto h-4 px-1.5 text-[10px]">{unreadChats}</Badge>}
+              </Link>
             </DropdownMenuItem>
           )}
           {userId && (
