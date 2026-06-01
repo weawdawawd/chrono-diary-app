@@ -578,7 +578,7 @@ export default function ChatPage() {
               </div>
               <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="border-t p-2 flex items-end gap-2">
                 <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Nachricht schreiben…" autoFocus className="flex-1" />
-                <Button type="submit" size="icon" disabled={!draft.trim()}><Send className="w-4 h-4" /></Button>
+                <Button type="submit" size="icon" disabled={!draft.trim()} aria-label="Nachricht senden"><Send className="w-4 h-4" /></Button>
               </form>
             </>
           )}
