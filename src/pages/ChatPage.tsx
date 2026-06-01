@@ -130,6 +130,16 @@ export default function ChatPage() {
         }
         loadConversations();
       })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.new as Message;
+        if (m.conversation_id === activeConvId) {
+          setMessages((prev) => prev.map((x) => x.id === m.id ? m : x));
+        }
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.old as Message;
+        setMessages((prev) => prev.filter((x) => x.id !== m.id));
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => loadFriendships())
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_participants" }, () => loadConversations())
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_conversations" }, () => loadConversations())
