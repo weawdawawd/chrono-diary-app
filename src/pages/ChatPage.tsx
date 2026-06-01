@@ -14,6 +14,8 @@ import { ArrowLeft, MessageSquarePlus, Search, Send, UserPlus, Users, Check, X, 
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
+import SeoHead from "@/components/SeoHead";
+
 
 type Profile = { user_id: string; username: string | null; display_name: string | null; email: string | null; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" | "blocked"; created_at: string };
@@ -334,11 +336,13 @@ export default function ChatPage() {
   if (me && !me.username) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <SeoHead title="Chat — Username wählen" description="Wähle deinen Username, damit Kollegen dich im Ledion Security Team-Chat finden und als Freund hinzufügen können." path="/chat" noIndex />
         <div className="max-w-md w-full space-y-4 bg-card rounded-2xl p-6 border">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8"><ArrowLeft className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8" aria-label="Zurück"><ArrowLeft className="w-4 h-4" /></Button>
             <h2 className="font-display text-lg font-semibold">Username wählen</h2>
           </div>
+
           <p className="text-sm text-muted-foreground">Mit deinem Username können dich Kollegen finden und als Freund hinzufügen.</p>
           <div className="flex items-center gap-2">
             <Hash className="w-4 h-4 text-muted-foreground" />
@@ -356,8 +360,10 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen flex flex-col bg-background">
+      <SeoHead title="Team-Chat — Ledion Security" description="Schreibe direkt mit Kollegen, beantworte Freundschaftsanfragen und koordiniere Schichten in Echtzeit über den internen Ledion Security Team-Chat." path="/chat" noIndex />
       <header className="h-14 border-b flex items-center px-3 gap-2 bg-card/90 backdrop-blur-xl">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-8 w-8"><ArrowLeft className="w-4 h-4" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-8 w-8" aria-label="Zurück zur Startseite"><ArrowLeft className="w-4 h-4" /></Button>
+
         <h1 className="font-display font-semibold flex-1 truncate flex items-center gap-2">
           Chat
           {totalUnread > 0 && <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{totalUnread}</Badge>}
@@ -534,7 +540,7 @@ export default function ChatPage() {
           ) : (
             <>
               <div className="h-12 border-b flex items-center gap-2 px-3">
-                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setActiveConvId(null)}><ArrowLeft className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setActiveConvId(null)} aria-label="Zurück zur Chat-Liste"><ArrowLeft className="w-4 h-4" /></Button>
                 {activeConv?.conv.is_group ? <Users className="w-4 h-4 text-primary" /> : null}
                 <div className="font-medium text-sm truncate flex-1">{activeTitle}</div>
                 {activeConv?.conv.is_group && (
@@ -572,7 +578,7 @@ export default function ChatPage() {
               </div>
               <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="border-t p-2 flex items-end gap-2">
                 <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Nachricht schreiben…" autoFocus className="flex-1" />
-                <Button type="submit" size="icon" disabled={!draft.trim()}><Send className="w-4 h-4" /></Button>
+                <Button type="submit" size="icon" disabled={!draft.trim()} aria-label="Nachricht senden"><Send className="w-4 h-4" /></Button>
               </form>
             </>
           )}
