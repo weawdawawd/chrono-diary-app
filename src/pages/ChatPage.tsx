@@ -313,6 +313,31 @@ export default function ChatPage() {
     if (error) { toast.error(error.message); setDraft(content); }
   };
 
+  const startEdit = (m: Message) => {
+    setEditingId(m.id);
+    setEditingDraft(m.content);
+  };
+  const cancelEdit = () => { setEditingId(null); setEditingDraft(""); };
+  const saveEdit = async () => {
+    if (!editingId || !editingDraft.trim()) return;
+    const newContent = editingDraft.trim();
+    const id = editingId;
+    setMessages((prev) => prev.map((x) => x.id === id ? { ...x, content: newContent, edited_at: new Date().toISOString() } : x));
+    cancelEdit();
+    const { error } = await supabase.from("chat_messages").update({ content: newContent, edited_at: new Date().toISOString() }).eq("id", id);
+    if (error) toast.error(error.message);
+  };
+  const deleteMessage = async (id: string) => {
+    setMessages((prev) => prev.filter((x) => x.id !== id));
+    setConfirmDeleteId(null);
+    const { error } = await supabase.from("chat_messages").delete().eq("id", id);
+    if (error) { toast.error(error.message); }
+    else toast.success("Nachricht gelöscht");
+  };
+    const { error } = await supabase.from("chat_messages").insert({ conversation_id: activeConvId, sender_id: user.id, content });
+    if (error) { toast.error(error.message); setDraft(content); }
+  };
+
   const activeConv = useMemo(() => conversations.find((c) => c.conv.id === activeConvId), [conversations, activeConvId]);
   const activeTitle = activeConv ? (activeConv.conv.is_group ? activeConv.conv.name : (activeConv.others[0]?.display_name || activeConv.others[0]?.username || activeConv.others[0]?.email || "Direkt")) : "";
 
