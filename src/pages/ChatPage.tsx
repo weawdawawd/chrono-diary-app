@@ -77,9 +77,9 @@ export default function ChatPage() {
     (fs ?? []).forEach((f: any) => { ids.add(f.requester_id); ids.add(f.addressee_id); });
     ids.delete(user.id);
     const { data: profs } = ids.size
-      ? await supabase.from("profiles").select("user_id,username,display_name,email,avatar_url").in("user_id", Array.from(ids))
+      ? await supabase.rpc("get_profiles_basic_bulk", { _user_ids: Array.from(ids) } as any)
       : { data: [] as any[] };
-    const pmap = new Map((profs ?? []).map((p: any) => [p.user_id, p]));
+    const pmap = new Map(((profs as any[]) ?? []).map((p: any) => [p.user_id, p]));
     const accepted: any[] = []; const inc: any[] = []; const out: any[] = [];
     (fs ?? []).forEach((f: any) => {
       const otherId = f.requester_id === user.id ? f.addressee_id : f.requester_id;
