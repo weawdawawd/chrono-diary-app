@@ -393,6 +393,7 @@ export type Database = {
           name: string
           nfc_id: string | null
           order_index: number
+          qr_secret: string
         }
         Insert: {
           active?: boolean
@@ -406,6 +407,7 @@ export type Database = {
           name: string
           nfc_id?: string | null
           order_index?: number
+          qr_secret?: string
         }
         Update: {
           active?: boolean
@@ -419,8 +421,48 @@ export type Database = {
           name?: string
           nfc_id?: string | null
           order_index?: number
+          qr_secret?: string
         }
         Relationships: []
+      }
+      patrol_route_points: {
+        Row: {
+          created_at: string
+          id: string
+          order_index: number
+          point_id: string
+          route_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_index?: number
+          point_id: string
+          route_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_index?: number
+          point_id?: string
+          route_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_route_points_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_route_points_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_routes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patrol_routes: {
         Row: {
@@ -457,34 +499,46 @@ export type Database = {
       }
       patrol_scans: {
         Row: {
+          distance_m: number | null
           id: string
           lat: number | null
           lng: number | null
           point_id: string
+          route_id: string | null
           scan_method: string
           scanned_at: string
+          session_id: string | null
           shift_session_id: string | null
           user_id: string
+          valid: boolean
         }
         Insert: {
+          distance_m?: number | null
           id?: string
           lat?: number | null
           lng?: number | null
           point_id: string
+          route_id?: string | null
           scan_method?: string
           scanned_at?: string
+          session_id?: string | null
           shift_session_id?: string | null
           user_id: string
+          valid?: boolean
         }
         Update: {
+          distance_m?: number | null
           id?: string
           lat?: number | null
           lng?: number | null
           point_id?: string
+          route_id?: string | null
           scan_method?: string
           scanned_at?: string
+          session_id?: string | null
           shift_session_id?: string | null
           user_id?: string
+          valid?: boolean
         }
         Relationships: [
           {
@@ -492,6 +546,70 @@ export type Database = {
             columns: ["point_id"]
             isOneToOne: false
             referencedRelation: "patrol_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_scans_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_scans_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patrol_sessions: {
+        Row: {
+          created_at: string
+          end_lat: number | null
+          end_lng: number | null
+          ended_at: string | null
+          id: string
+          route_id: string | null
+          start_lat: number | null
+          start_lng: number | null
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          ended_at?: string | null
+          id?: string
+          route_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          ended_at?: string | null
+          id?: string
+          route_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_sessions_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "patrol_routes"
             referencedColumns: ["id"]
           },
         ]
@@ -939,6 +1057,10 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      end_patrol_session: {
+        Args: { _lat: number; _lng: number; _session_id: string }
+        Returns: string
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -1010,6 +1132,22 @@ export type Database = {
           display_name: string
           user_id: string
           username: string
+        }[]
+      }
+      sign_patrol_qr: { Args: { _point_id: string }; Returns: string }
+      start_patrol_session: {
+        Args: { _lat: number; _lng: number; _route_id: string }
+        Returns: string
+      }
+      verify_patrol_qr: {
+        Args: { _payload: string }
+        Returns: {
+          code: string
+          lat: number
+          lng: number
+          location: string
+          name: string
+          point_id: string
         }[]
       }
     }
