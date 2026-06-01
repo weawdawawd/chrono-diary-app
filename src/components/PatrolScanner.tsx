@@ -125,86 +125,91 @@ export default function PatrolScanner({ userId }: Props) {
   };
 
   // ---- scan handling ----
-  const resolvePoint = async (raw: string, method: "qr" | "nfc"): Promise<{ id: string; lat: number | null; lng: number | null; name: string; location: string } | null> => {
-    const text = raw.trim();
-    // Signed QR payload: LDN1.<uuid>.<sig>
-    if (method === "qr" && text.startsWith("LDN1.")) {
-      const { data, error } = await supabase.rpc("verify_patrol_qr", { _payload: text } as any);
-      if (error || !data || !(data as any[])[0]) { toast.error("QR ungültig"); return null; }
-      const r = (data as any[])[0];
-      return { id: r.point_id, lat: r.lat, lng: r.lng, name: r.name, location: r.location };
-    }
-    // Legacy fallback: lookup by code or nfc_id
-    const col = method === "nfc" ? "nfc_id" : "code";
-    const { data: p } = await supabase
-      .from("patrol_points")
-      .select("id,name,location,lat,lng")
-      .eq(col, text)
-      .eq("active", true)
-      .maybeSingle();
-    if (!p) { toast.error("Punkt nicht gefunden"); return null; }
-    return p as any;
-  };
-
   const handleScan = async (raw: string, method: "qr" | "nfc") => {
-    const point = await resolvePoint(raw, method);
-    if (!point) return;
+    const text = raw.trim();
+    const payload = method === "qr" ? text : null;
+    const nfcId = method === "nfc" ? text : null;
 
-    // Route membership check
-    if (selectedRoute) {
-      const inRoute = routePoints.some((rp) => rp.point_id === point.id);
-      if (!inRoute) {
-        setLastResult({ ok: false, text: `Falscher Punkt: "${point.name}" gehört nicht zum Rundgang` });
-        toast.error("Punkt gehört nicht zum Rundgang");
-        return;
-      }
+    // Resolve point info for display + route membership (no qr_secret involved)
+    let pointMeta: { id: string; name: string; location: string } | null = null;
+    if (payload && payload.startsWith("LDN1.")) {
+      const { data } = await supabase.rpc("verify_patrol_qr", { _payload: payload } as any);
+      const r = (data as any[])?.[0];
+      if (r) pointMeta = { id: r.point_id, name: r.name, location: r.location };
+    } else if (nfcId) {
+      const { data } = await supabase
+        .from("patrol_points")
+        .select("id,name,location")
+        .eq("nfc_id", nfcId)
+        .eq("active", true)
+        .maybeSingle();
+      if (data) pointMeta = data as any;
     }
 
-    // GPS check
+    if (selectedRoute && pointMeta && !routePoints.some((rp) => rp.point_id === pointMeta!.id)) {
+      setLastResult({ ok: false, text: `Falscher Punkt: "${pointMeta.name}" gehört nicht zum Rundgang` });
+      toast.error("Punkt gehört nicht zum Rundgang");
+      return;
+    }
+
     const pos = await getCurrentPosition(4000);
-    let distance: number | null = null;
-    let valid = true;
-    if (pos && point.lat != null && point.lng != null) {
-      distance = haversineMeters(pos, { lat: point.lat, lng: point.lng });
-      if (distance > GEO_RADIUS_M) {
-        valid = false;
-        toast.warning(`Zu weit entfernt (${Math.round(distance)} m)`);
-      }
-    }
-
-    const row = {
-      user_id: userId,
-      point_id: point.id,
-      scan_method: method,
-      session_id: sessionId,
-      route_id: selectedRoute,
+    const scannedAt = new Date().toISOString();
+    const queued = {
+      payload, nfcId,
       lat: pos?.lat ?? null,
       lng: pos?.lng ?? null,
-      distance_m: distance,
-      valid,
-      scanned_at: new Date().toISOString(),
+      sessionId,
+      routeId: selectedRoute,
+      scannedAt,
     };
 
     if (!navigator.onLine) {
-      queueScan(row);
+      queueScan(queued);
       setPendingCount(queueCount());
       toast.info("Offline gespeichert");
     } else {
-      const { error } = await supabase.from("patrol_scans").insert(row as any);
+      const { error } = await supabase.rpc("record_patrol_scan", {
+        _payload: payload,
+        _nfc_id: nfcId,
+        _lat: queued.lat,
+        _lng: queued.lng,
+        _session_id: sessionId,
+        _route_id: selectedRoute,
+        _scanned_at: scannedAt,
+      } as any);
       if (error) {
-        queueScan(row);
+        if (/(invalid|signature|unknown|forbidden|not authenticated)/i.test(error.message)) {
+          toast.error(error.message);
+          setLastResult({ ok: false, text: error.message });
+          return;
+        }
+        queueScan(queued);
         setPendingCount(queueCount());
         toast.warning("Konnte nicht senden – offline gespeichert");
       }
     }
 
-    if (valid) {
-      setScannedPointIds((s) => new Set(s).add(point.id));
-      setLastResult({ ok: true, text: `${point.name} · ${point.location}${distance != null ? ` · ${Math.round(distance)} m` : ""}` });
+    if (pointMeta) {
+      setScannedPointIds((s) => new Set(s).add(pointMeta!.id));
+      // Display distance for user info (server is authoritative)
+      let distTxt = "";
+      if (pos && pointMeta) {
+        const { data: pt } = await supabase
+          .from("patrol_points")
+          .select("lat,lng")
+          .eq("id", pointMeta.id)
+          .maybeSingle();
+        if (pt?.lat != null && pt?.lng != null) {
+          const d = haversineMeters(pos, { lat: pt.lat, lng: pt.lng });
+          distTxt = ` · ${Math.round(d)} m`;
+        }
+      }
+      setLastResult({ ok: true, text: `${pointMeta.name} · ${pointMeta.location}${distTxt}` });
     } else {
-      setLastResult({ ok: false, text: `${point.name} – zu weit entfernt (${Math.round(distance!)} m)` });
+      setLastResult({ ok: true, text: "Scan erfasst" });
     }
   };
+
 
   // ---- QR ----
   const startQR = async () => {
