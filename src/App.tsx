@@ -17,6 +17,7 @@ import CatalogPage from "./pages/admin/CatalogPage";
 import LogbookPage from "./pages/admin/LogbookPage";
 import SessionsPage from "./pages/admin/SessionsPage";
 import PatrolPage from "./pages/admin/PatrolPage";
+import ChatPage from "./pages/ChatPage";
 
 import { LanguageProvider } from "@/lib/i18n";
 
