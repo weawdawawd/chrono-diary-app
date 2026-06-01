@@ -147,7 +147,9 @@ export default function PatrolPage() {
   };
 
   const printQR = async (pt: Point) => {
-    const payload = await signedPayload(pt.id).catch(() => pt.code);
+    let payload: string;
+    try { payload = await signedPayload(pt.id); }
+    catch (e: any) { toast.error(`QR-Signatur fehlgeschlagen: ${e?.message || e}`); return; }
     const dataUrl = await QRCode.toDataURL(payload, { width: 400, margin: 2 });
     const w = window.open("", "_blank");
     if (!w) return toast.error("Popup blockiert");
