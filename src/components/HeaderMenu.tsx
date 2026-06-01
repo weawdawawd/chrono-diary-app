@@ -276,6 +276,8 @@ function ControlledSettings({ open, onOpenChange, settings, onSaveSettings, proj
                 <div className="flex gap-1">
                   {PROJECT_COLORS.map((c) => (
                     <button key={c} type="button"
+                      aria-label={`Farbe ${c} auswählen`}
+                      aria-pressed={newColor === c}
                       className={`w-5 h-5 rounded-full transition-transform ${newColor === c ? "scale-125 ring-2 ring-ring ring-offset-1" : ""}`}
                       style={{ backgroundColor: c }} onClick={() => setNewColor(c)} />
                   ))}
