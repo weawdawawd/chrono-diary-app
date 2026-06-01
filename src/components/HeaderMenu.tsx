@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check, BookText } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check, BookText, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import MyShifts from "@/components/MyShifts";
 import MyShiftsCalendar from "@/components/MyShiftsCalendar";
@@ -72,6 +73,11 @@ export default function HeaderMenu({
         <DropdownMenuContent align="end" className="w-60">
           {email && <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground truncate">{email}</DropdownMenuLabel>}
           <DropdownMenuSeparator />
+          {userId && (
+            <DropdownMenuItem asChild>
+              <Link to="/chat"><MessageSquare className="w-4 h-4 mr-2 text-accent" /> Chat</Link>
+            </DropdownMenuItem>
+          )}
           {userId && (
             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenShifts(true); setOpen(false); }}>
               <CalendarClock className="w-4 h-4 mr-2 text-accent" /> {t("Meine Schichten")}

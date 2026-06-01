@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList, BookText, Timer, QrCode } from "lucide-react";
+import { Users, Link2, CalendarClock, ShieldCheck, LayoutDashboard, Library, ClipboardList, BookText, Timer, QrCode, MessageSquare } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ const items = [
   { title: "Objekte & Tätigkeiten", url: "/admin/catalog", icon: Library },
   { title: "Wachbuch", url: "/admin/logbook", icon: BookText },
   { title: "Patrouille", url: "/admin/patrol", icon: QrCode },
+  { title: "Chat", url: "/chat", icon: MessageSquare },
 
 ];
 

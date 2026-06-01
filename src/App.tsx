@@ -17,6 +17,7 @@ import CatalogPage from "./pages/admin/CatalogPage";
 import LogbookPage from "./pages/admin/LogbookPage";
 import SessionsPage from "./pages/admin/SessionsPage";
 import PatrolPage from "./pages/admin/PatrolPage";
+import ChatPage from "./pages/ChatPage";
 
 import { LanguageProvider } from "@/lib/i18n";
 
@@ -34,6 +35,8 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/invite/:token" element={<AcceptInvite />} />
+            <Route path="/chat" element={<ChatPage />} />
+
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
