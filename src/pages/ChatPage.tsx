@@ -22,7 +22,7 @@ import SeoHead from "@/components/SeoHead";
 type Profile = { user_id: string; username: string | null; display_name: string | null; email: string | null; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" | "blocked"; created_at: string };
 type Conversation = { id: string; is_group: boolean; name: string | null; created_by: string; last_message_at: string };
-type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string };
+type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string; edited_at?: string | null };
 
 const PAGE = 30;
 const initials = (s?: string | null) => (s || "?").split(/\s+|@/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
