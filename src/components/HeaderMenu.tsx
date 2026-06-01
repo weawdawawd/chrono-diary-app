@@ -74,6 +74,11 @@ export default function HeaderMenu({
           {email && <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground truncate">{email}</DropdownMenuLabel>}
           <DropdownMenuSeparator />
           {userId && (
+            <DropdownMenuItem asChild>
+              <Link to="/chat"><MessageSquare className="w-4 h-4 mr-2 text-accent" /> Chat</Link>
+            </DropdownMenuItem>
+          )}
+          {userId && (
             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpenShifts(true); setOpen(false); }}>
               <CalendarClock className="w-4 h-4 mr-2 text-accent" /> {t("Meine Schichten")}
             </DropdownMenuItem>
