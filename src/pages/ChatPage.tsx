@@ -262,10 +262,9 @@ export default function ChatPage() {
     }
     const { data: conv, error } = await supabase.from("chat_conversations").insert({ is_group: false, created_by: user.id }).select().single();
     if (error || !conv) { toast.error(error?.message || "Fehler"); return; }
-    const { error: pErr } = await supabase.from("chat_participants").insert([
-      { conversation_id: conv.id, user_id: user.id },
-      { conversation_id: conv.id, user_id: otherId },
-    ]);
+    const { error: selfErr } = await supabase.from("chat_participants").insert({ conversation_id: conv.id, user_id: user.id });
+    if (selfErr) { toast.error(selfErr.message); return; }
+    const { error: pErr } = await supabase.from("chat_participants").insert({ conversation_id: conv.id, user_id: otherId });
     if (pErr) { toast.error(pErr.message); return; }
     setActiveConvId(conv.id);
     loadConversations();
