@@ -24,6 +24,8 @@ import type { WorkEntry } from "@/lib/types";
 import { useEffect } from "react";
 import { useT, LANGUAGES } from "@/lib/i18n";
 import AvatarUpload from "@/components/AvatarUpload";
+import { Badge } from "@/components/ui/badge";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
 interface Props {
   email?: string;
