@@ -69,11 +69,24 @@ export default function HeaderMenu({
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10" aria-label={t("Menü")}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-accent/10 relative" aria-label={t("Menü")}>
             <Menu className="w-5 h-5" />
+            {unreadChats > 0 && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
+          {email && <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground truncate">{email}</DropdownMenuLabel>}
+          <DropdownMenuSeparator />
+          {userId && (
+            <DropdownMenuItem asChild>
+              <Link to="/chat">
+                <MessageSquare className="w-4 h-4 mr-2 text-accent" /> Chat
+                {unreadChats > 0 && <Badge variant="destructive" className="ml-auto h-4 px-1.5 text-[10px]">{unreadChats}</Badge>}
+              </Link>
+            </DropdownMenuItem>
+          )}
           {email && <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground truncate">{email}</DropdownMenuLabel>}
           <DropdownMenuSeparator />
           {userId && (
