@@ -334,9 +334,6 @@ export default function ChatPage() {
     if (error) { toast.error(error.message); }
     else toast.success("Nachricht gelöscht");
   };
-    const { error } = await supabase.from("chat_messages").insert({ conversation_id: activeConvId, sender_id: user.id, content });
-    if (error) { toast.error(error.message); setDraft(content); }
-  };
 
   const activeConv = useMemo(() => conversations.find((c) => c.conv.id === activeConvId), [conversations, activeConvId]);
   const activeTitle = activeConv ? (activeConv.conv.is_group ? activeConv.conv.name : (activeConv.others[0]?.display_name || activeConv.others[0]?.username || activeConv.others[0]?.email || "Direkt")) : "";
