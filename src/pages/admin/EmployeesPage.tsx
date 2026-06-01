@@ -298,6 +298,7 @@ export default function EmployeesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+      <SeoHead title="Mitarbeiter verwalten — Ledion Admin" description="Übersicht aller Mitarbeitenden, Rollen und Stammdaten im Ledion Security Admin-Bereich." path="/admin/employees" noIndex />
       <div className="flex items-center gap-2">
         <Users className="w-5 h-5 text-primary" />
         <h1 className="font-display font-bold text-lg">Mitarbeiter ({employees.length})</h1>
