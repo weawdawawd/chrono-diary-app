@@ -60,7 +60,7 @@ export default function AdminLayout() {
             <div className="flex-1 min-w-0">
               <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
             </div>
-            <AdminUserMenu email={user.email} onSignOut={signOut} />
+            <AdminUserMenu email={user.email} userId={user.id} onSignOut={signOut} />
           </header>
           <div className="h-[2px] bg-gradient-to-r from-transparent via-accent to-brand-red opacity-70" />
           <main className="flex-1 overflow-auto">
