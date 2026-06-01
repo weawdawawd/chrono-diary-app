@@ -10,7 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { ArrowLeft, MessageSquarePlus, Search, Send, UserPlus, Users, Check, X, Hash, Loader2, Settings2, Pencil, Trash2, Inbox } from "lucide-react";
+import { ArrowLeft, MessageSquarePlus, Search, Send, UserPlus, Users, Check, X, Hash, Loader2, Settings2, Pencil, Trash2, Inbox, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
@@ -20,7 +22,7 @@ import SeoHead from "@/components/SeoHead";
 type Profile = { user_id: string; username: string | null; display_name: string | null; email: string | null; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" | "blocked"; created_at: string };
 type Conversation = { id: string; is_group: boolean; name: string | null; created_by: string; last_message_at: string };
-type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string };
+type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string; edited_at?: string | null };
 
 const PAGE = 30;
 const initials = (s?: string | null) => (s || "?").split(/\s+|@/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
@@ -51,6 +53,9 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollBottomRef = useRef(true);
   const { counts: unreadCounts, total: totalUnread, refresh: refreshUnread } = useUnreadChats();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Load my profile
   useEffect(() => {
@@ -124,6 +129,16 @@ export default function ChatPage() {
           markRead(m.conversation_id);
         }
         loadConversations();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.new as Message;
+        if (m.conversation_id === activeConvId) {
+          setMessages((prev) => prev.map((x) => x.id === m.id ? m : x));
+        }
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.old as Message;
+        setMessages((prev) => prev.filter((x) => x.id !== m.id));
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => loadFriendships())
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_participants" }, () => loadConversations())
@@ -296,6 +311,28 @@ export default function ChatPage() {
     shouldScrollBottomRef.current = true;
     const { error } = await supabase.from("chat_messages").insert({ conversation_id: activeConvId, sender_id: user.id, content });
     if (error) { toast.error(error.message); setDraft(content); }
+  };
+
+  const startEdit = (m: Message) => {
+    setEditingId(m.id);
+    setEditingDraft(m.content);
+  };
+  const cancelEdit = () => { setEditingId(null); setEditingDraft(""); };
+  const saveEdit = async () => {
+    if (!editingId || !editingDraft.trim()) return;
+    const newContent = editingDraft.trim();
+    const id = editingId;
+    setMessages((prev) => prev.map((x) => x.id === id ? { ...x, content: newContent, edited_at: new Date().toISOString() } : x));
+    cancelEdit();
+    const { error } = await supabase.from("chat_messages").update({ content: newContent, edited_at: new Date().toISOString() }).eq("id", id);
+    if (error) toast.error(error.message);
+  };
+  const deleteMessage = async (id: string) => {
+    setMessages((prev) => prev.filter((x) => x.id !== id));
+    setConfirmDeleteId(null);
+    const { error } = await supabase.from("chat_messages").delete().eq("id", id);
+    if (error) { toast.error(error.message); }
+    else toast.success("Nachricht gelöscht");
   };
 
   const activeConv = useMemo(() => conversations.find((c) => c.conv.id === activeConvId), [conversations, activeConvId]);
@@ -564,15 +601,52 @@ export default function ChatPage() {
                   const prev = messages[idx - 1];
                   const showSender = activeConv?.conv.is_group && !mine && prev?.sender_id !== m.sender_id;
                   const sender = activeConv?.others.find((o) => o.user_id === m.sender_id);
+                  const isEditing = editingId === m.id;
                   return (
-                    <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                    <div key={m.id} className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                         {showSender && <div className="text-[10px] text-muted-foreground mb-0.5 px-1">{sender?.display_name || sender?.username || "?"}</div>}
-                        <div className={`rounded-2xl px-3 py-1.5 text-sm whitespace-pre-wrap break-words ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                          {m.content}
+                        <div className={`flex items-start gap-1 ${mine ? "flex-row-reverse" : "flex-row"}`}>
+                          <div className={`rounded-2xl px-3 py-1.5 text-sm whitespace-pre-wrap break-words ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1 min-w-[180px]">
+                                <Input
+                                  value={editingDraft}
+                                  onChange={(e) => setEditingDraft(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(); } if (e.key === "Escape") cancelEdit(); }}
+                                  autoFocus
+                                  className="h-8 bg-background text-foreground"
+                                />
+                                <div className="flex gap-1 justify-end">
+                                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={cancelEdit}>Abbr.</Button>
+                                  <Button size="sm" className="h-6 px-2 text-xs" onClick={saveEdit} disabled={!editingDraft.trim()}>Speichern</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              m.content
+                            )}
+                          </div>
+                          {mine && !isEditing && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 focus:opacity-100 data-[state=open]:opacity-100 text-muted-foreground" aria-label="Nachricht bearbeiten oder löschen">
+                                  <MoreVertical className="w-3.5 h-3.5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-36">
+                                <DropdownMenuItem onClick={() => startEdit(m)}>
+                                  <Pencil className="w-3.5 h-3.5 mr-2" /> Bearbeiten
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setConfirmDeleteId(m.id)}>
+                                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Löschen
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                         <div className="text-[10px] text-muted-foreground mt-0.5 px-1">
                           {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {m.edited_at && <span className="ml-1 italic">(bearbeitet)</span>}
                         </div>
                       </div>
                     </div>
@@ -648,6 +722,19 @@ export default function ChatPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nachricht löschen?</AlertDialogTitle>
+            <AlertDialogDescription>Diese Aktion kann nicht rückgängig gemacht werden.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => confirmDeleteId && deleteMessage(confirmDeleteId)}>Löschen</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
