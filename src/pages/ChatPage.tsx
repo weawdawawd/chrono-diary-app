@@ -14,6 +14,8 @@ import { ArrowLeft, MessageSquarePlus, Search, Send, UserPlus, Users, Check, X, 
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
+import SeoHead from "@/components/SeoHead";
+
 
 type Profile = { user_id: string; username: string | null; display_name: string | null; email: string | null; avatar_url: string | null };
 type Friendship = { id: string; requester_id: string; addressee_id: string; status: "pending" | "accepted" | "blocked"; created_at: string };
