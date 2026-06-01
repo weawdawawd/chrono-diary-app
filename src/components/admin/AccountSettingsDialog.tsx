@@ -73,6 +73,12 @@ export default function AccountSettingsDialog({ currentEmail, userId, controlled
         </DialogHeader>
 
         <div className="space-y-6 pt-2">
+          {userId && (
+            <section className="space-y-3">
+              <Label className="text-sm font-semibold">Profilbild</Label>
+              <AvatarUpload userId={userId} fallbackText={currentEmail} />
+            </section>
+          )}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-accent" />
