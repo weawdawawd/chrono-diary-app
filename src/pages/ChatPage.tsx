@@ -53,6 +53,9 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollBottomRef = useRef(true);
   const { counts: unreadCounts, total: totalUnread, refresh: refreshUnread } = useUnreadChats();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Load my profile
   useEffect(() => {
