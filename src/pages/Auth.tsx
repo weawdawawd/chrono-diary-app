@@ -96,7 +96,7 @@ export default function AuthPage() {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center space-y-4">
             <div className="relative inline-flex flex-col items-center">
               <div className="absolute inset-0 -m-6 rounded-full bg-gradient-to-br from-accent/30 via-brand-red/10 to-transparent blur-2xl" />
-              <img src={(new URL("../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion Security" className="relative w-24 h-24 object-contain drop-shadow-xl" />
+              <img src={(new URL("../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion Security" width={96} height={96} fetchPriority="high" decoding="async" className="relative w-24 h-24 object-contain drop-shadow-xl" />
             </div>
             <div>
               <h1 className="font-display font-bold text-3xl tracking-tight">
