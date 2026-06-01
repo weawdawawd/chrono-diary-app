@@ -1,18 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const KEY = "patrol_offline_scans_v1";
+const KEY = "patrol_offline_scans_v2";
+const LEGACY_KEY = "patrol_offline_scans_v1";
 
 export type QueuedScan = {
-  user_id: string;
-  point_id: string;
-  scan_method: "qr" | "nfc";
-  session_id: string | null;
-  route_id: string | null;
+  payload: string | null;
+  nfcId: string | null;
   lat: number | null;
   lng: number | null;
-  distance_m: number | null;
-  valid: boolean;
-  scanned_at: string;
+  sessionId: string | null;
+  routeId: string | null;
+  scannedAt: string;
 };
 
 const read = (): QueuedScan[] => {
@@ -34,15 +32,35 @@ export const queueScan = (scan: QueuedScan) => {
 export const queueCount = () => read().length;
 
 export const flushQueue = async (): Promise<number> => {
+  // Drop any legacy (insecure) queued rows from previous client versions.
+  try { localStorage.removeItem(LEGACY_KEY); } catch {}
   const rows = read();
   if (!rows.length) return 0;
-  const { error } = await supabase.from("patrol_scans").insert(rows as any);
-  if (error) {
-    console.error("[patrol-offline] flush failed", error);
-    return 0;
+  const remaining: QueuedScan[] = [];
+  let sent = 0;
+  for (const r of rows) {
+    const { error } = await supabase.rpc("record_patrol_scan", {
+      _payload: r.payload,
+      _nfc_id: r.nfcId,
+      _lat: r.lat,
+      _lng: r.lng,
+      _session_id: r.sessionId,
+      _route_id: r.routeId,
+      _scanned_at: r.scannedAt,
+    } as any);
+    if (error) {
+      // permanent errors (invalid signature etc.): drop. transient: keep.
+      if (/(invalid|signature|unknown|forbidden|not authenticated)/i.test(error.message)) {
+        console.warn("[patrol-offline] dropping invalid queued scan", error.message);
+      } else {
+        remaining.push(r);
+      }
+    } else {
+      sent++;
+    }
   }
-  write([]);
-  return rows.length;
+  write(remaining);
+  return sent;
 };
 
 export const initOfflineSync = () => {

@@ -1087,6 +1087,15 @@ export type Database = {
           username: string
         }[]
       }
+      get_profiles_basic_bulk: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_unread_chat_counts: {
         Args: { _user: string }
         Returns: {
@@ -1124,6 +1133,18 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      record_patrol_scan: {
+        Args: {
+          _lat: number
+          _lng: number
+          _nfc_id: string
+          _payload: string
+          _route_id: string
+          _scanned_at?: string
+          _session_id: string
+        }
+        Returns: string
       }
       search_profiles: {
         Args: { _q: string }
