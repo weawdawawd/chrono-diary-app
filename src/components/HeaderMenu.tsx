@@ -43,6 +43,7 @@ export default function HeaderMenu({
   email, userId, entries, settings, onSaveSettings, projects, onAddProject, onDeleteProject, onSignOut,
 }: Props) {
   const { lang, setLang, t } = useT();
+  const { total: unreadChats } = useUnreadChats();
   const [open, setOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openExport, setOpenExport] = useState(false);
