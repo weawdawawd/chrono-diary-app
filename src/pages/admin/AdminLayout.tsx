@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,14 +7,12 @@ import { Navigate } from "react-router-dom";
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 import BrandLogo from "@/components/BrandLogo";
 import AdminUserMenu from "@/components/admin/AdminUserMenu";
+import SeoHead from "@/components/SeoHead";
 
 export default function AdminLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, loading: roleLoading, error: roleError, retry: retryRole } = useUserRole(user?.id);
 
-  useEffect(() => {
-    document.title = "Admin — Ledion Arbeitszeit";
-  }, []);
 
 
 
