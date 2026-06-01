@@ -35,6 +35,8 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/invite/:token" element={<AcceptInvite />} />
+            <Route path="/chat" element={<ChatPage />} />
+
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
