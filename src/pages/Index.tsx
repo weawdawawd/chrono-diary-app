@@ -27,6 +27,7 @@ import SosButton from "@/components/SosButton";
 import SosBanner from "@/components/SosBanner";
 import PatrolScanner from "@/components/PatrolScanner";
 import { useLiveLocationDuringShift } from "@/hooks/useLiveLocationDuringShift";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 import AdminAuthDebug from "@/components/AdminAuthDebug";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -44,6 +45,7 @@ const Index = () => {
   const { settings, upsertSettings } = useUserSettings(employeeId);
   const { activities: savedActivities, upsertActivity } = useSavedActivities(employeeId);
   useLiveLocationDuringShift(employeeId);
+  usePushNotifications(user?.id);
 
   const [filterMonth, setFilterMonth] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");

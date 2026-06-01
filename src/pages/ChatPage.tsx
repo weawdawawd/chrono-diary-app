@@ -310,8 +310,33 @@ export default function ChatPage() {
     setDraft("");
     shouldScrollBottomRef.current = true;
     const { error } = await supabase.from("chat_messages").insert({ conversation_id: activeConvId, sender_id: user.id, content });
-    if (error) { toast.error(error.message); setDraft(content); }
+    if (error) { toast.error(error.message); setDraft(content); return; }
+
+    // Push notify other participants
+    try {
+      const { data: parts } = await supabase
+        .from("chat_participants")
+        .select("user_id")
+        .eq("conversation_id", activeConvId);
+      const recipients = (parts ?? []).map((p: any) => p.user_id).filter((id: string) => id !== user.id);
+      const senderName = (user.user_metadata as any)?.display_name || user.email || "Neue Nachricht";
+      await Promise.all(
+        recipients.map((rid: string) =>
+          supabase.functions.invoke("send-push-notification", {
+            body: {
+              user_id: rid,
+              title: senderName,
+              body: content.slice(0, 140),
+              data: { route: "/chat", conversation_id: activeConvId },
+            },
+          })
+        )
+      );
+    } catch (e) {
+      console.error("[chat-push] failed", e);
+    }
   };
+
 
   const startEdit = (m: Message) => {
     setEditingId(m.id);
