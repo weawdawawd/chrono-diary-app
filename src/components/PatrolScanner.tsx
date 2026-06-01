@@ -136,6 +136,15 @@ export default function PatrolScanner({ userId }: Props) {
       const { data } = await supabase.rpc("verify_patrol_qr", { _payload: payload } as any);
       const r = (data as any[])?.[0];
       if (r) pointMeta = { id: r.point_id, name: r.name, location: r.location };
+    } else if (payload) {
+      // Backwards-compat: plain point code printed on older QR labels
+      const { data } = await supabase
+        .from("patrol_points")
+        .select("id,name,location")
+        .eq("code", payload)
+        .eq("active", true)
+        .maybeSingle();
+      if (data) pointMeta = data as any;
     } else if (nfcId) {
       const { data } = await supabase
         .from("patrol_points")
@@ -178,14 +187,19 @@ export default function PatrolScanner({ userId }: Props) {
         _scanned_at: scannedAt,
       } as any);
       if (error) {
-        if (/(invalid|signature|unknown|forbidden|not authenticated)/i.test(error.message)) {
-          toast.error(error.message);
-          setLastResult({ ok: false, text: error.message });
+        console.error("[patrol-scan] record_patrol_scan failed", error);
+        const msg = error.message || "Scan abgelehnt";
+        // Only fall back to offline queue on true network failures
+        const isNetwork = /failed to fetch|network|networkerror|load failed/i.test(msg);
+        if (isNetwork) {
+          queueScan(queued);
+          setPendingCount(queueCount());
+          toast.warning("Konnte nicht senden – offline gespeichert");
+        } else {
+          toast.error(`Scan abgelehnt: ${msg}`);
+          setLastResult({ ok: false, text: msg });
           return;
         }
-        queueScan(queued);
-        setPendingCount(queueCount());
-        toast.warning("Konnte nicht senden – offline gespeichert");
       }
     }
 
