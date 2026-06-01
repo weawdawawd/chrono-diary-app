@@ -13,10 +13,11 @@ import AccountSettingsDialog from "@/components/admin/AccountSettingsDialog";
 
 interface Props {
   email?: string;
+  userId?: string;
   onSignOut: () => void;
 }
 
-export default function AdminUserMenu({ email, onSignOut }: Props) {
+export default function AdminUserMenu({ email, userId, onSignOut }: Props) {
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [dark, setDark] = useState(() =>
