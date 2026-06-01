@@ -65,6 +65,7 @@ export default function AdminUserMenu({ email, userId, onSignOut }: Props) {
 
       <AccountSettingsDialog
         currentEmail={email}
+        userId={userId}
         controlledOpen={accountOpen}
         onOpenChange={setAccountOpen}
         hideTrigger
