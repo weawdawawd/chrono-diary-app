@@ -6,15 +6,17 @@ import { Label } from "@/components/ui/label";
 import { UserCog, Mail, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarUpload from "@/components/AvatarUpload";
 
 interface Props {
   currentEmail?: string;
+  userId?: string;
   controlledOpen?: boolean;
   onOpenChange?: (v: boolean) => void;
   hideTrigger?: boolean;
 }
 
-export default function AccountSettingsDialog({ currentEmail, controlledOpen, onOpenChange, hideTrigger }: Props) {
+export default function AccountSettingsDialog({ currentEmail, userId, controlledOpen, onOpenChange, hideTrigger }: Props) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -71,6 +73,12 @@ export default function AccountSettingsDialog({ currentEmail, controlledOpen, on
         </DialogHeader>
 
         <div className="space-y-6 pt-2">
+          {userId && (
+            <section className="space-y-3">
+              <Label className="text-sm font-semibold">Profilbild</Label>
+              <AvatarUpload userId={userId} fallbackText={currentEmail} />
+            </section>
+          )}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-accent" />
