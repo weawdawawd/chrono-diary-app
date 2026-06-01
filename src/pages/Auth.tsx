@@ -4,7 +4,7 @@ import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, KeyRound, ArrowLeft } from "lucide-react";
+import { ArrowRight, KeyRound, ArrowLeft, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import SeoHead from "@/components/SeoHead";
