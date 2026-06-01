@@ -401,7 +401,7 @@ export default function ChatPage() {
   return (
     <div className="h-screen flex flex-col bg-background">
       <SeoHead title="Team-Chat — Ledion Security" description="Schreibe direkt mit Kollegen, beantworte Freundschaftsanfragen und koordiniere Schichten in Echtzeit über den internen Ledion Security Team-Chat." path="/chat" noIndex />
-      <header className="h-14 border-b flex items-center px-3 gap-2 bg-card/90 backdrop-blur-xl">
+      <header className="border-b flex items-center px-3 gap-2 bg-card/90 backdrop-blur-xl pt-safe min-h-14">
         <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-8 w-8" aria-label="Zurück zur Startseite"><ArrowLeft className="w-4 h-4" /></Button>
 
         <h1 className="font-display font-semibold flex-1 truncate flex items-center gap-2">

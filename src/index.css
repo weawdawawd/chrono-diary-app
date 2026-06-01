@@ -130,4 +130,8 @@
   .shadow-gold { box-shadow: var(--shadow-gold); }
   .text-brand-gold { color: hsl(var(--brand-gold)); }
   .text-brand-red { color: hsl(var(--brand-red)); }
+
+  /* iOS / Notch safe area helpers */
+  .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+  .pb-safe { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
 }
