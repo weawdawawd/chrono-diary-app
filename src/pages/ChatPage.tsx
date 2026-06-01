@@ -380,7 +380,7 @@ export default function ChatPage() {
         <div className="max-w-md w-full space-y-4 bg-card rounded-2xl p-6 border">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8" aria-label="Zurück"><ArrowLeft className="w-4 h-4" /></Button>
-            <h2 className="font-display text-lg font-semibold">Username wählen</h2>
+            <h1 className="font-display text-lg font-semibold">Username wählen</h1>
           </div>
 
           <p className="text-sm text-muted-foreground">Mit deinem Username können dich Kollegen finden und als Freund hinzufügen.</p>
