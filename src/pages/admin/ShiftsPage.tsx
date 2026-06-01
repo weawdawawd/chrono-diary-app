@@ -226,6 +226,22 @@ export default function ShiftsPage() {
         }
       }
 
+      // Push-Benachrichtigung an Mitarbeiter (eine pro Schicht)
+      if (empId && created?.length) {
+        for (const s of created) {
+          const dateLabel = format(parseISO(s.date), "EEE, d. MMM", { locale: de });
+          supabase.functions.invoke("send-push-notification", {
+            body: {
+              user_id: empId,
+              title: "Neue Schicht zugewiesen",
+              body: `${dateLabel} · ${s.start_time?.slice(0, 5)}–${s.end_time?.slice(0, 5)} · ${s.location}`,
+              data: { route: "/", shift_id: s.id },
+            },
+          }).catch((e) => console.error("[shift-push] failed", e));
+        }
+      }
+
+
       setOpen(false);
       setEmpId(""); setLocation(""); setAddress(""); setLat(null); setLng(null);
       setRadius(null); setActivity(""); setRequiresLocation(false); setServiceType("security");
