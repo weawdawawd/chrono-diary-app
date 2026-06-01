@@ -54,7 +54,7 @@ export default function AdminLayout() {
 
         <AdminSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10 px-3 gap-2">
+          <header className="min-h-14 flex items-center border-b bg-card/90 backdrop-blur-xl sticky top-0 z-10 px-3 gap-2 pt-safe">
             <SidebarTrigger />
             <BrandLogo size={28} />
             <div className="flex-1 min-w-0">
