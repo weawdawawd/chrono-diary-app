@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check, BookText } from "lucide-react";
+import { Menu, LogOut, Settings, Download, Moon, Sun, CalendarClock, Languages, Check, BookText, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import MyShifts from "@/components/MyShifts";
 import MyShiftsCalendar from "@/components/MyShiftsCalendar";
