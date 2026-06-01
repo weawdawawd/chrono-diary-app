@@ -1,48 +1,46 @@
-## Ziel
+## Status
 
-Die gesamte App (Mitarbeiter- + Admin-Bereich) in alle 8 Sprachen übersetzen: DE, EN, AR, FA, SQ, ES, FR, TR. RTL-Layout für AR/FA bereits vorhanden, wird beibehalten.
+Bereits vorhanden:
+- Tabellen `patrol_points`, `patrol_routes`, `patrol_scans`
+- Mitarbeiter-Scanner (`PatrolScanner.tsx`) mit NFC + QR
+- Admin-Seite mit Punkten, Routen-Anlage (ohne Punkte-Zuordnung) und Live-Scan-Liste
 
-## Vorgehen
+Fehlt: Sessions (Start/Ende), Routen-Punkte-Zuordnung, GPS-Validierung, signierte QR-Codes, Offline-Queue, Filter im Admin.
 
-### Wörterbuch-Refactor (einmalig, vor Phase 1)
+## Geplante Änderungen
 
-Das aktuelle `dict` in `src/lib/i18n.tsx` wird unübersichtlich, wenn hunderte Strings reinkommen. Daher:
+### 1) Datenbank-Migration
 
-- `src/lib/i18n/` als Ordner anlegen
-- `src/lib/i18n/keys.ts` — alle Übersetzungs-Keys + DE-Quelle
-- `src/lib/i18n/locales/{en,ar,fa,sq,es,fr,tr}.ts` — eine Datei pro Sprache
-- `src/lib/i18n.tsx` lädt diese und exportiert `useT()` weiter (kein API-Bruch)
-- Fallback bleibt: fehlender Key → DE-Quelle anzeigen
+- Neue Tabelle `patrol_route_points` (route_id, point_id, order_index, UNIQUE) — verknüpft Punkte mit Routen
+- Neue Tabelle `patrol_sessions` (user_id, route_id, started_at, ended_at, start_lat/lng, end_lat/lng, status: active/completed/incomplete)
+- `patrol_scans`: Spalten `session_id`, `route_id`, `distance_m`, `valid` ergänzen
+- `patrol_points`: Spalte `qr_secret` (zufällig) für signierte QR-Payload
+- RLS-Policies + GRANTs für neue Tabellen analog bestehender Patrol-Policies
+- RPC `start_patrol_session(_route_id, _lat, _lng)` und `end_patrol_session(_session_id, _lat, _lng)` (SECURITY DEFINER) — prüft Vollständigkeit und setzt Status
 
-### Phase 1 — Mitarbeiter-Bereich (diese Iteration)
+### 2) Admin (`PatrolPage.tsx`)
 
-Komponenten, die normale Mitarbeiter sehen, vollständig verdrahten:
+- Rundgang-Dialog: Auswahl mehrerer Punkte mit Reihenfolge (drag oder ↑/↓), speichert `patrol_route_points`
+- Scans-Tab: Filter Mitarbeiter / Datumsbereich / Scan-Typ / Status (gültig/ungültig)
+- QR-Druck nutzt signierte Payload `code.qr_secret` (Base64)
 
-- `src/pages/Auth.tsx`, `AcceptInvite.tsx`, `ResetPassword.tsx`, `Unsubscribe.tsx`
-- `src/pages/Index.tsx`
-- `src/components/`: `WorkEntryForm`, `WorkEntryList`, `WorkStats`, `WeeklyChart`, `MonthlyComparisonChart`, `MonthFilter`, `MyShifts` (Ausbau), `MyShiftsCalendar`, `MyLogbook`, `GuardLog`, `ShiftClock`, `SosBanner`, `SosButton` (Ausbau), `DailyReminder`, `ExportDialog`, `SettingsDialog`, `HeaderMenu` (Ausbau), `AvatarUpload`, `PhoneSetting`, `WorkCalendar`, `ShiftMiniCalendar`, `DuplicateButton`, `NavLink`, `PatrolScanner`
-- Alle `toast.success/error/info` in diesen Dateien
+### 3) Mitarbeiter (`PatrolScanner.tsx`)
 
-### Phase 2 — Admin-Bereich (nächste Iteration)
+- Button „Rundgang starten" → Auswahl Route → ruft `start_patrol_session` (GPS); zentraler Scan-Screen während Session
+- NFC primär, QR als Fallback; verifiziert signierten QR-Payload
+- Pro Scan: GPS-Position vergleichen mit Punkt (>50 m → Warnung, `valid=false`)
+- Fortschrittsanzeige: x/y Punkte gescannt
+- „Beenden" → `end_patrol_session`; zeigt ✅ vollständig oder ❌ unvollständig
+- Offline: ausstehende Scans in `localStorage` zwischenspeichern, Re-Sync bei `online`-Event
 
-- `src/pages/admin/`: `AdminLayout`, `DashboardPage`, `EmployeesPage`, `InvitationsPage`, `LogbookPage`, `PatrolPage`, `ShiftsPage`, `SessionsPage`, `CatalogPage`
-- `src/components/admin/`: `AdminSidebar`, `AdminUserMenu`, `AccountSettingsDialog`, `LiveMap`
-- `src/components/AdminPanel.tsx`
+### 4) Technische Details
 
-### Phase 3 — Polish
+- `qrcode` und `html5-qrcode` sind bereits installiert
+- GPS-Distanz: Haversine-Helper in `src/lib/geo.ts`
+- QR-Payload-Format: `LDN1.<point_id>.<hmac8>` — HMAC mit `qr_secret`, serverseitig per RPC `verify_patrol_qr` geprüft
+- Offline-Sync-Hook `useOfflineScanQueue.ts`
 
-- E-Mail-Templates (`supabase/functions/_shared/...`) — entweder beibehalten (DE) oder pro Empfänger-Sprache, klärungsbedürftig
-- Restliche kleine Komponenten + Toasts, die in Phase 1/2 übersehen wurden
-- Manuelle Durchsicht aller 8 Sprachen auf Tippfehler
+## Out of Scope (kurz)
 
-## Technische Details
-
-- Keys = englische Slugs (z. B. `auth.login.title`), nicht mehr deutsche Originalstrings — sauberer und kollisionsfrei.
-- Jede `.ts`-Locale-Datei exportiert ein `Record<string, string>`; TypeScript erzwingt nichts (Lücken erlaubt, Fallback greift).
-- Wo Strings dynamische Werte enthalten (`${count} Stunden`), bekommt `t()` Parameter: `t("stats.hours", { count })`.
-- RTL: `document.documentElement.dir` wird bereits gesetzt, keine Änderung.
-- Date/Number-Formate werden via `Intl` an `lang` gekoppelt (kurzer Helper `formatDate(date, lang)`).
-
-## Liefer-Reihenfolge in dieser Antwort
-
-Nur Phase 1 wird jetzt umgesetzt. Phase 2 + 3 folgen, sobald du Phase 1 abgenommen hast — sonst wird die Änderungsmenge zu groß für eine saubere Review.
+- Echte E2E-Verschlüsselung der NFC-Tags (NFC-ID-Vergleich bleibt wie heute)
+- Push-Benachrichtigungen an Admin bei ungültigem Scan
