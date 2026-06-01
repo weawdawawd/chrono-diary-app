@@ -16,6 +16,7 @@ import MonthFilter from "@/components/MonthFilter";
 import { Navigate } from "react-router-dom";
 import { Briefcase, ClipboardList, User } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import SeoHead from "@/components/SeoHead";
 import HeaderMenu from "@/components/HeaderMenu";
 import AuthPage from "@/pages/Auth";
 import { motion } from "framer-motion";
