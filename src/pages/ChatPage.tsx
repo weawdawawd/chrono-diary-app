@@ -442,13 +442,13 @@ export default function ChatPage() {
                         {friends.map(({ profile }) => {
                           const checked = groupMembers.includes(profile.user_id);
                           return (
-                            <label key={profile.user_id} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer">
-                              <input type="checkbox" checked={checked} onChange={(e) => {
-                                setGroupMembers((prev) => e.target.checked ? [...prev, profile.user_id] : prev.filter((id) => id !== profile.user_id));
-                              }} />
-                              <Avatar className="w-6 h-6"><AvatarImage src={profile.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{initials(profile.display_name || profile.username || profile.email)}</AvatarFallback></Avatar>
-                              <span className="text-sm">{profile.display_name || profile.username || profile.email}</span>
-                            </label>
+                             <label key={profile.user_id} htmlFor={`group-member-${profile.user_id}`} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer">
+                               <input id={`group-member-${profile.user_id}`} type="checkbox" checked={checked} onChange={(e) => {
+                                 setGroupMembers((prev) => e.target.checked ? [...prev, profile.user_id] : prev.filter((id) => id !== profile.user_id));
+                               }} />
+                               <Avatar className="w-6 h-6"><AvatarImage src={profile.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{initials(profile.display_name || profile.username || profile.email)}</AvatarFallback></Avatar>
+                               <span className="text-sm">{profile.display_name || profile.username || profile.email}</span>
+                             </label>
                           );
                         })}
                       </div>
@@ -502,8 +502,8 @@ export default function ChatPage() {
                               <div className="text-sm font-medium truncate">{profile.display_name || profile.username || profile.email}</div>
                               {profile.username && <div className="text-[11px] text-muted-foreground truncate">@{profile.username}</div>}
                             </div>
-                            <Button size="sm" variant="default" className="h-7 gap-1" onClick={() => respond(friendship.id, true)}><Check className="w-3.5 h-3.5" /> Annehmen</Button>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => respond(friendship.id, false)}><X className="w-4 h-4" /></Button>
+                            <Button size="sm" variant="default" className="h-7 gap-1" onClick={() => respond(friendship.id, true)} aria-label="Freundschaftsanfrage annehmen"><Check className="w-3.5 h-3.5" /> Annehmen</Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => respond(friendship.id, false)} aria-label="Freundschaftsanfrage ablehnen"><X className="w-4 h-4" /></Button>
                           </div>
                         ))}
                       </div>
@@ -522,7 +522,7 @@ export default function ChatPage() {
                               <div className="text-sm font-medium truncate">{profile.display_name || profile.username || profile.email}</div>
                               <div className="text-[11px] text-muted-foreground">wartet auf Antwort</div>
                             </div>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => respond(friendship.id, false)}><X className="w-4 h-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => respond(friendship.id, false)} aria-label="Anfrage zurückziehen"><X className="w-4 h-4" /></Button>
                           </div>
                         ))}
                       </div>
@@ -548,7 +548,7 @@ export default function ChatPage() {
                       <div className="text-sm font-medium truncate">{searchResult.display_name || searchResult.username}</div>
                       <div className="text-[11px] text-muted-foreground truncate">@{searchResult.username}</div>
                     </div>
-                    <Button size="sm" onClick={() => sendRequest(searchResult.user_id)}><UserPlus className="w-3.5 h-3.5" /></Button>
+                    <Button size="sm" onClick={() => sendRequest(searchResult.user_id)} aria-label="Freundschaftsanfrage senden"><UserPlus className="w-3.5 h-3.5" /></Button>
                   </div>
                 )}
               </div>
@@ -704,8 +704,8 @@ export default function ChatPage() {
                       {friendsNotInGroup.map(({ profile }) => {
                         const checked = addMemberIds.includes(profile.user_id);
                         return (
-                          <label key={profile.user_id} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer">
-                            <input type="checkbox" checked={checked} onChange={(e) => {
+                          <label key={profile.user_id} htmlFor={`add-member-${profile.user_id}`} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer">
+                            <input id={`add-member-${profile.user_id}`} type="checkbox" checked={checked} onChange={(e) => {
                               setAddMemberIds((prev) => e.target.checked ? [...prev, profile.user_id] : prev.filter((id) => id !== profile.user_id));
                             }} />
                             <Avatar className="w-6 h-6"><AvatarImage src={profile.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{initials(profile.display_name || profile.username || profile.email)}</AvatarFallback></Avatar>
