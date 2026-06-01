@@ -158,7 +158,7 @@ export default function PatrolPage() {
       </head><body>
       <h2>${escapeHtml(pt.name)}</h2>
       <p>${escapeHtml(pt.location)}</p>
-      <img src="${dataUrl}" />
+      <img src="${dataUrl}" alt="QR Code" />
       <p><code>${escapeHtml(pt.code)}</code></p>
       <script>setTimeout(()=>window.print(),300)</script>
       </body></html>`);
@@ -171,7 +171,7 @@ export default function PatrolPage() {
     const items = await Promise.all(list.map(async (pt) => {
       const payload = await signedPayload(pt.id).catch(() => pt.code);
       const url = await QRCode.toDataURL(payload, { width: 320, margin: 2 });
-      return `<div class="card"><h3>${escapeHtml(pt.name)}</h3><p>${escapeHtml(pt.location)}</p><img src="${url}"/><code>${escapeHtml(pt.code)}</code></div>`;
+      return `<div class="card"><h3>${escapeHtml(pt.name)}</h3><p>${escapeHtml(pt.location)}</p><img src="${url}" alt="QR Code"/><code>${escapeHtml(pt.code)}</code></div>`;
     }));
     const w = window.open("", "_blank");
     if (!w) return;

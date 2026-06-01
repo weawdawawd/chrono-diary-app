@@ -37,7 +37,7 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <img src={(new URL("../../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion" className="w-8 h-8 object-contain shrink-0" />
+          <img src={(new URL("../../assets/ledion-logo.png", import.meta.url)).href} alt="Ledion Security Logo" className="w-8 h-8 object-contain shrink-0" />
           {!collapsed && (
             <div className="leading-none">
               <div className="font-display font-bold text-sm text-sidebar-foreground">LEDION</div>
