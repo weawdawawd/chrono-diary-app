@@ -16,7 +16,7 @@ interface Props {
   hideTrigger?: boolean;
 }
 
-export default function AccountSettingsDialog({ currentEmail, controlledOpen, onOpenChange, hideTrigger }: Props) {
+export default function AccountSettingsDialog({ currentEmail, userId, controlledOpen, onOpenChange, hideTrigger }: Props) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
