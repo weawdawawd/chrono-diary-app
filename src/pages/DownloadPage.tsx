@@ -67,7 +67,7 @@ export default function DownloadPage() {
                 asChild
                 className="w-full h-12 text-sm font-semibold gap-2"
               >
-                <a href="https://dfqcturrfbnzlhiaupnw.supabase.co/storage/v1/object/public/ledion/app-debug.apk" download>
+                <a href="https://dqryutxrtaxtiydwlsri.supabase.co/storage/v1/object/public/ledion/app-debug.apk" download>
                   <Download className="w-5 h-5" />
                   Android App herunterladen (.apk)
                 </a>
