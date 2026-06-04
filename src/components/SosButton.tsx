@@ -41,6 +41,34 @@ export default function SosButton({
         message: message.trim() || null,
       });
       if (error) throw error;
+
+      // Sender name for the push body
+      let senderName = "Kollege";
+      try {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("display_name, username, email")
+          .eq("user_id", userId)
+          .maybeSingle();
+        senderName =
+          prof?.display_name || prof?.username || prof?.email?.split("@")[0] || "Kollege";
+      } catch {}
+
+      const msg = message.trim();
+      const locTxt = `Standort: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+      supabase.functions
+        .invoke("send-push-notification", {
+          body: {
+            to_role: "admin",
+            nearby: { lat: pos.coords.latitude, lng: pos.coords.longitude, radius_m: 1000 },
+            exclude_user_id: userId,
+            title: "🚨 SOS Alarm",
+            body: msg ? `${senderName}: ${msg}` : `${senderName} · ${locTxt}`,
+            data: { route: "/admin/dashboard" },
+          },
+        })
+        .catch((e) => console.error("[sos-push] failed", e));
+
       toast.success(t("Notruf abgesendet"), {
         description: "Admin & 1km",
         duration: 6000,
