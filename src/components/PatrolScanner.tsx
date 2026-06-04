@@ -214,6 +214,18 @@ export default function PatrolScanner({ userId }: Props) {
         }
       }
       setLastResult({ ok: true, text: `${pointMeta.name} · ${pointMeta.location}${distTxt}` });
+
+      // Notify admins
+      supabase.functions
+        .invoke("send-push-notification", {
+          body: {
+            to_role: "admin",
+            title: "✅ Kontrollpunkt",
+            body: `${pointMeta.name} · ${pointMeta.location}`,
+            data: { route: "/admin/patrol", point_id: pointMeta.id },
+          },
+        })
+        .catch((e) => console.error("[patrol-push] failed", e));
     } else {
       setLastResult({ ok: true, text: "Scan erfasst" });
     }
