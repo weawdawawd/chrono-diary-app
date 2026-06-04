@@ -25,13 +25,11 @@ export default function ResetPassword() {
   useEffect(() => {
     let mounted = true;
 
-
-
     const hash = window.location.hash.replace(/^#/, "");
-    const params = new URLSearchParams(hash);
-    if (params.get("type") === "recovery" || params.get("access_token")) {
-      setIsRecovery(true);
-    }
+    const hashParams = new URLSearchParams(hash);
+    const queryParams = new URLSearchParams(window.location.search);
+    const code = queryParams.get("code");
+    const errorDesc = queryParams.get("error_description") || hashParams.get("error_description");
 
     const {
       data: { subscription },
@@ -43,13 +41,39 @@ export default function ResetPassword() {
     });
 
     (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!mounted) return;
-      if (session) setIsRecovery(true);
-      setChecking(false);
+      try {
+        if (errorDesc) {
+          toast.error(errorDesc);
+        } else if (code) {
+          // PKCE recovery flow: exchange the code for a session
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          if (mounted) setIsRecovery(true);
+          window.history.replaceState({}, document.title, "/reset-password");
+        } else if (hashParams.get("type") === "recovery" || hashParams.get("access_token")) {
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+          if (accessToken && refreshToken) {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (error) throw error;
+          }
+          if (mounted) setIsRecovery(true);
+          window.history.replaceState({}, document.title, "/reset-password");
+        } else {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (mounted && session) setIsRecovery(true);
+        }
+      } catch (err: any) {
+        console.error("[reset-password] session error", err);
+        if (mounted) toast.error(err?.message || "Reset-Link ungültig oder abgelaufen.");
+      } finally {
+        if (mounted) setChecking(false);
+      }
     })();
 
     return () => {
@@ -73,8 +97,9 @@ export default function ResetPassword() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setSuccess(true);
-      toast.success("Passwort erfolgreich geändert!");
-      setTimeout(() => navigate("/"), 2000);
+      toast.success("Passwort erfolgreich geändert");
+      await supabase.auth.signOut();
+      setTimeout(() => navigate("/"), 1500);
     } catch (err: any) {
       toast.error(err.message || "Fehler beim Zurücksetzen");
     } finally {
