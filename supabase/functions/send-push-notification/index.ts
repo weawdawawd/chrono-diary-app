@@ -21,7 +21,9 @@ interface PushInput {
   user_id?: string;
   user_ids?: string[];
   to_role?: "admin" | "planner" | "objektleiter";
+  to_roles?: Array<"admin" | "planner" | "objektleiter">;
   nearby?: { lat: number; lng: number; radius_m: number; within_minutes?: number };
+  shift_id?: string;
   exclude_user_id?: string;
   title: string;
   body: string;
@@ -123,12 +125,43 @@ Deno.serve(async (req) => {
     if (input.user_id) recipients.add(input.user_id);
     if (input.user_ids) for (const u of input.user_ids) recipients.add(u);
 
-    if (input.to_role) {
+    const rolesToFetch = new Set<string>();
+    if (input.to_role) rolesToFetch.add(input.to_role);
+    if (input.to_roles) for (const r of input.to_roles) rolesToFetch.add(r);
+    if (rolesToFetch.size > 0) {
       const { data: roleRows } = await supabase
         .from("user_roles")
         .select("user_id")
-        .eq("role", input.to_role);
+        .in("role", Array.from(rolesToFetch));
       for (const r of roleRows || []) recipients.add(r.user_id);
+    }
+
+    if (input.shift_id) {
+      const { data: srcShift } = await supabase
+        .from("shifts")
+        .select("location, date, start_time, end_time")
+        .eq("id", input.shift_id)
+        .maybeSingle();
+      if (srcShift) {
+        // Find users with accepted shifts at the same location, same date, overlapping time
+        const { data: overlapping } = await supabase
+          .from("shifts")
+          .select("employee_user_id, start_time, end_time")
+          .eq("location", srcShift.location)
+          .eq("date", srcShift.date)
+          .eq("assignment_status", "accepted")
+          .lt("start_time", srcShift.end_time)
+          .gt("end_time", srcShift.start_time);
+        for (const s of overlapping || []) {
+          if (s.employee_user_id) recipients.add(s.employee_user_id);
+        }
+        // Also auto-include admin + objektleiter
+        const { data: roleRows2 } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .in("role", ["admin", "objektleiter"]);
+        for (const r of roleRows2 || []) recipients.add(r.user_id);
+      }
     }
 
     if (input.nearby) {

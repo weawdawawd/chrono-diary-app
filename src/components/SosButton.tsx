@@ -59,7 +59,8 @@ export default function SosButton({
       supabase.functions
         .invoke("send-push-notification", {
           body: {
-            to_role: "admin",
+            to_roles: ["admin", "objektleiter"],
+            shift_id: activeShiftId ?? undefined,
             nearby: { lat: pos.coords.latitude, lng: pos.coords.longitude, radius_m: 1000 },
             exclude_user_id: userId,
             title: "🚨 SOS Alarm",
