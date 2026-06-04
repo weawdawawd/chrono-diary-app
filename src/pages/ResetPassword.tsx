@@ -97,8 +97,9 @@ export default function ResetPassword() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setSuccess(true);
-      toast.success("Passwort erfolgreich geändert!");
-      setTimeout(() => navigate("/"), 2000);
+      toast.success("Passwort erfolgreich geändert");
+      await supabase.auth.signOut();
+      setTimeout(() => navigate("/"), 1500);
     } catch (err: any) {
       toast.error(err.message || "Fehler beim Zurücksetzen");
     } finally {
