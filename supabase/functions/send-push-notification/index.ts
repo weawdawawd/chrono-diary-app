@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
 
   try {
     const input = (await req.json()) as PushInput;
-    if (!input?.user_id || !input?.title || !input?.body) {
-      return new Response(JSON.stringify({ error: "user_id, title, body required" }), {
+    if (!input?.title || !input?.body) {
+      return new Response(JSON.stringify({ error: "title, body required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -118,10 +118,53 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Resolve recipient user ids
+    const recipients = new Set<string>();
+    if (input.user_id) recipients.add(input.user_id);
+    if (input.user_ids) for (const u of input.user_ids) recipients.add(u);
+
+    if (input.to_role) {
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", input.to_role);
+      for (const r of roleRows || []) recipients.add(r.user_id);
+    }
+
+    if (input.nearby) {
+      const sinceMin = input.nearby.within_minutes ?? 30;
+      const since = new Date(Date.now() - sinceMin * 60_000).toISOString();
+      const { data: locs } = await supabase
+        .from("shift_locations")
+        .select("user_id, lat, lng, recorded_at")
+        .gte("recorded_at", since);
+      const seen = new Set<string>();
+      for (const l of locs || []) {
+        if (seen.has(l.user_id)) continue;
+        if (l.lat == null || l.lng == null) continue;
+        const d = haversineMeters(
+          { lat: input.nearby.lat, lng: input.nearby.lng },
+          { lat: l.lat, lng: l.lng }
+        );
+        if (d <= input.nearby.radius_m) {
+          recipients.add(l.user_id);
+          seen.add(l.user_id);
+        }
+      }
+    }
+
+    if (input.exclude_user_id) recipients.delete(input.exclude_user_id);
+
+    if (recipients.size === 0) {
+      return new Response(JSON.stringify({ sent: 0, reason: "no recipients" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: tokens, error } = await supabase
       .from("device_tokens")
       .select("token")
-      .eq("user_id", input.user_id);
+      .in("user_id", Array.from(recipients));
 
     if (error) throw error;
     if (!tokens || tokens.length === 0) {
