@@ -135,6 +135,21 @@ export default function GuardLog({ locationName, shiftId, userId, canWrite, isPl
         incident_at: incidentAt ? new Date(incidentAt).toISOString() : null,
       });
       if (error) throw error;
+
+      // Notify admins
+      const snippet = text.length > 120 ? text.slice(0, 117) + "…" : text;
+      supabase.functions
+        .invoke("send-push-notification", {
+          body: {
+            to_role: "admin",
+            exclude_user_id: userId,
+            title: "📋 Neuer Vorfall",
+            body: `${locationName}: ${snippet}`,
+            data: { route: "/admin/logbook" },
+          },
+        })
+        .catch((e) => console.error("[guardlog-push] failed", e));
+
       setContent("");
       clearPhoto();
       setIncidentType("freitext");
