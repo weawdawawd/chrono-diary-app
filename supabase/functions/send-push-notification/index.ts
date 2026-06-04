@@ -21,7 +21,9 @@ interface PushInput {
   user_id?: string;
   user_ids?: string[];
   to_role?: "admin" | "planner" | "objektleiter";
+  to_roles?: Array<"admin" | "planner" | "objektleiter">;
   nearby?: { lat: number; lng: number; radius_m: number; within_minutes?: number };
+  shift_id?: string;
   exclude_user_id?: string;
   title: string;
   body: string;
