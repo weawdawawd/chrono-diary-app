@@ -233,7 +233,7 @@ export default function ShiftsPage() {
           supabase.functions.invoke("send-push-notification", {
             body: {
               user_id: empId,
-              title: "Neue Schicht zugewiesen",
+              title: "📅 Neue Schicht",
               body: `${dateLabel} · ${s.start_time?.slice(0, 5)}–${s.end_time?.slice(0, 5)} · ${s.location}`,
               data: { route: "/", shift_id: s.id },
             },
