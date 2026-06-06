@@ -39,7 +39,7 @@ export default function DownloadPage() {
             </div>
             <div>
               <h1 className="font-display font-bold text-3xl tracking-tight">
-                LEDION <span className="text-brand-red">SECURITY</span>
+                Ledion Security <span className="text-brand-red">App herunterladen</span>
               </h1>
               <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
                 Arbeitszeiterfassung mit GPS-Stempeluhr und Wachbuch
@@ -57,7 +57,7 @@ export default function DownloadPage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent mb-2">
                   <Smartphone className="w-6 h-6" />
                 </div>
-                <h2 className="font-display font-semibold text-xl">Android App</h2>
+                <h3 className="font-display font-semibold text-xl">Android App</h3>
                 <p className="text-xs text-muted-foreground">
                   Installiere die App direkt als APK auf deinem Android-Gerät.
                 </p>
