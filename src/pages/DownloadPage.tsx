@@ -39,7 +39,7 @@ export default function DownloadPage() {
             </div>
             <div>
               <h1 className="font-display font-bold text-3xl tracking-tight">
-                LEDION <span className="text-brand-red">SECURITY</span>
+                Ledion Security <span className="text-brand-red">App herunterladen</span>
               </h1>
               <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
                 Arbeitszeiterfassung mit GPS-Stempeluhr und Wachbuch

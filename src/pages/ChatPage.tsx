@@ -430,7 +430,7 @@ export default function ChatPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-8 w-8" aria-label="Zurück zur Startseite"><ArrowLeft className="w-4 h-4" /></Button>
 
         <h1 className="font-display font-semibold flex-1 truncate flex items-center gap-2">
-          Chat
+          Team-Chat &amp; Kommunikation
           {totalUnread > 0 && <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{totalUnread}</Badge>}
         </h1>
         {me?.username && <Badge variant="secondary" className="font-mono text-[10px]">@{me.username}</Badge>}
