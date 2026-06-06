@@ -57,7 +57,7 @@ export default function DownloadPage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 text-accent mb-2">
                   <Smartphone className="w-6 h-6" />
                 </div>
-                <h3 className="font-display font-semibold text-xl">Android App</h3>
+                <h2 className="font-display font-semibold text-xl">Android App</h2>
                 <p className="text-xs text-muted-foreground">
                   Installiere die App direkt als APK auf deinem Android-Gerät.
                 </p>
