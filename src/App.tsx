@@ -40,6 +40,8 @@ const App = () => (
             <Route path="/invite/:token" element={<AcceptInvite />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/download" element={<DownloadPage />} />
+            <Route path="/blog/digitales-wachbuch" element={<GuideLogbook />} />
+
 
 
             <Route path="/admin" element={<AdminLayout />}>
