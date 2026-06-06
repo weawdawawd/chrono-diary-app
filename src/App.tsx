@@ -9,6 +9,8 @@ import AcceptInvite from "./pages/AcceptInvite";
 import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import DownloadPage from "./pages/DownloadPage";
+import GuideLogbook from "./pages/GuideLogbook";
+
 import AdminLayout from "./pages/admin/AdminLayout";
 import DashboardPage from "./pages/admin/DashboardPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/invite/:token" element={<AcceptInvite />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/download" element={<DownloadPage />} />
+            <Route path="/blog/digitales-wachbuch" element={<GuideLogbook />} />
+
 
 
             <Route path="/admin" element={<AdminLayout />}>
