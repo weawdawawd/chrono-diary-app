@@ -404,6 +404,101 @@ export type Database = {
         }
         Relationships: []
       }
+      order_lines: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          end_time: string | null
+          id: string
+          location_id: string | null
+          location_name_raw: string
+          notes: string | null
+          order_id: string
+          security_count: number
+          start_date: string
+          start_time: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          location_id?: string | null
+          location_name_raw: string
+          notes?: string | null
+          order_id: string
+          security_count?: number
+          start_date: string
+          start_time?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          location_id?: string | null
+          location_name_raw?: string
+          notes?: string | null
+          order_id?: string
+          security_count?: number
+          start_date?: string
+          start_time?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_lines_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          order_number: string | null
+          raw_content: string | null
+          source: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          order_number?: string | null
+          raw_content?: string | null
+          source?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          order_number?: string | null
+          raw_content?: string | null
+          source?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       patrol_points: {
         Row: {
           active: boolean
@@ -860,6 +955,7 @@ export type Database = {
           location_consent_at: string | null
           location_consent_declined: boolean
           note: string | null
+          reminder_sent_at: string | null
           requires_location: boolean
           responded_at: string | null
           service_type: Database["public"]["Enums"]["service_type"]
@@ -887,6 +983,7 @@ export type Database = {
           location_consent_at?: string | null
           location_consent_declined?: boolean
           note?: string | null
+          reminder_sent_at?: string | null
           requires_location?: boolean
           responded_at?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
@@ -914,6 +1011,7 @@ export type Database = {
           location_consent_at?: string | null
           location_consent_declined?: boolean
           note?: string | null
+          reminder_sent_at?: string | null
           requires_location?: boolean
           responded_at?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
